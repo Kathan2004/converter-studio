@@ -162,12 +162,12 @@ describe("site shell", { skip }, () => {
     assert.equal(await bg(), "rgb(251, 251, 253)", "starts in the device mode (light)");
     assert.equal(await label(), "Switch to dark mode");
     await page.click("#themeToggle");
-    assert.equal(await bg(), "rgb(0, 0, 0)");
+    await page.waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 0)");
     assert.equal(await label(), "Switch to light mode");
     await page.reload({ waitUntil: "networkidle0" });
     assert.equal(await bg(), "rgb(0, 0, 0)", "choice is remembered");
     await page.click("#themeToggle");
-    assert.equal(await bg(), "rgb(251, 251, 253)");
+    await page.waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(251, 251, 253)");
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
     assert.equal(await bg(), "rgb(251, 251, 253)", "an explicit choice overrides the device");
     assert.deepEqual(page.errors, []);

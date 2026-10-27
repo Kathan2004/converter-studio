@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- Light/Dark toggle in the menu bar, remembered on the device and applied before the page paints (first visit starts in the device's mode)
+- Light/Dark toggle in the menu bar, remembered on the device and applied before the page paints (first visit starts in the device's mode). Switching is seamless: the new theme grows as a circle from the toggle, with a colour cross-fade where View Transitions are unavailable or motion is reduced
 
 ### Changed
 

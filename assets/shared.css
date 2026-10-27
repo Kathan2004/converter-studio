@@ -592,6 +592,15 @@ body[data-tint="gray"] { --glow-1: rgba(142, 142, 147, 0.26); --glow-2: rgba(100
 @media (prefers-reduced-transparency: reduce) {
   .site-nav-inner, .palette, .drop-orb, .page-drop div { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+/* Theme switch: the circular reveal is driven from shared.js; the browser's default cross-fade is turned off. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+/* Fallback when View Transitions are unavailable or motion is reduced: a short colour cross-fade. */
+.theme-fading, .theme-fading *, .theme-fading *::before, .theme-fading *::after {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, fill 0.4s ease, box-shadow 0.4s ease !important;
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .theme-fading, .theme-fading *, .theme-fading *::before, .theme-fading *::after { transition: background-color 0.3s ease, color 0.3s ease !important; }
 }

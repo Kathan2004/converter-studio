@@ -347,8 +347,36 @@
       btn.setAttribute("aria-label", `Switch to ${next} mode`);
       btn.title = `Switch to ${next} mode`;
     };
-    btn.addEventListener("click", () => { applyTheme(currentTheme() === "dark" ? "light" : "dark"); render(); });
+    btn.addEventListener("click", () => switchTheme(btn, render));
     render();
+  }
+
+  /**
+   * Seamless switch: the new theme grows as a circle from the toggle (View Transitions API).
+   * Without that API, or with reduced motion, colours cross-fade instead of cutting.
+   */
+  function switchTheme(btn, render) {
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    const swap = () => { applyTheme(next); render(); };
+    const root = document.documentElement;
+    const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!document.startViewTransition || reduce) {
+      root.classList.add("theme-fading");
+      swap();
+      setTimeout(() => root.classList.remove("theme-fading"), 450);
+      return;
+    }
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const transition = document.startViewTransition(swap);
+    transition.ready.then(() => {
+      root.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 560, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", pseudoElement: "::view-transition-new(root)" },
+      );
+    }).catch(() => {});
   }
 
   /** Turn "hero + tab bar + panels" into "sidebar + per-tool header + panel". */
