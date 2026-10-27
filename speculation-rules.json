@@ -3,6 +3,7 @@
     { "where": { "href_matches": "/*.html" }, "eagerness": "eager" }
   ],
   "prerender": [
+    { "where": { "selector_matches": ".site-links a" }, "eagerness": "eager" },
     { "where": { "href_matches": "/*.html" }, "eagerness": "moderate" }
   ]
 }

@@ -15,10 +15,11 @@ All notable changes to this project are documented in this file.
 - Less fine print: static notes under tools are hidden; live warnings and results stay
 - Image to text: one drop target that also takes a pasted screenshot
 
-- Near-instant page switches: every page is prefetched and the one you hover or start to tap is prerendered (Speculation Rules, sent as an HTTP header so the strict CSP stays intact), pages cross-fade with the menu bar held in place (cross-document View Transitions), and site code is served from cache while refreshing in the background
+- Near-instant page switches: every page is prefetched and the one you hover or start to tap is prerendered (Speculation Rules, sent as an HTTP header so the strict CSP stays intact), the category pages in the menu are prerendered ahead of time, and site code is served from cache while refreshing in the background
 
 ### Fixed
 
+- Stutter on phones: the background glows no longer use a blur filter or run a constant animation (now plain gradients, painted once), content no longer fades in on load, and the page-to-page cross-fade (which held the old page frozen) is gone. On a 4x-throttled CPU the theme switch's longest frame dropped from 250 ms to about 60 ms, and a tool page is fully visible in about 0.2 s instead of 0.75 s
 - Tool pages were wider than a phone screen (the tool row stretched the layout) and showed a large empty gap above the title
 
 ## [2.1.0] - 2026-10-27

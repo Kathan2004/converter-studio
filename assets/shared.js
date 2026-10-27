@@ -376,7 +376,7 @@
     transition.ready.then(() => {
       root.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: 560, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", pseudoElement: "::view-transition-new(root)" },
+        { duration: 420, easing: "cubic-bezier(0.25, 0.8, 0.25, 1)", pseudoElement: "::view-transition-new(root)" },
       );
     }).catch(() => {});
   }
