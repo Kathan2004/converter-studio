@@ -154,23 +154,22 @@ describe("site shell", { skip }, () => {
     await page.close();
   });
 
-  test("theme toggle cycles system, light, dark and survives a reload", async () => {
+  test("theme toggle switches light and dark and survives a reload", async () => {
     const page = await open("pdf.html");
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
     const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    const theme = () => page.evaluate(() => document.documentElement.dataset.theme || "system");
-    assert.equal(await theme(), "system");
+    const label = () => page.$eval("#themeToggle", (b) => b.getAttribute("aria-label"));
+    assert.equal(await bg(), "rgb(251, 251, 253)", "starts in the device mode (light)");
+    assert.equal(await label(), "Switch to dark mode");
     await page.click("#themeToggle");
-    assert.equal(await theme(), "light");
-    await page.click("#themeToggle");
-    assert.equal(await theme(), "dark");
     assert.equal(await bg(), "rgb(0, 0, 0)");
+    assert.equal(await label(), "Switch to light mode");
     await page.reload({ waitUntil: "networkidle0" });
-    assert.equal(await theme(), "dark", "choice is remembered");
-    assert.equal(await bg(), "rgb(0, 0, 0)");
+    assert.equal(await bg(), "rgb(0, 0, 0)", "choice is remembered");
     await page.click("#themeToggle");
-    assert.equal(await theme(), "system");
-    assert.equal(await bg(), "rgb(251, 251, 253)", "back to the device (light) setting");
+    assert.equal(await bg(), "rgb(251, 251, 253)");
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
+    assert.equal(await bg(), "rgb(251, 251, 253)", "an explicit choice overrides the device");
     assert.deepEqual(page.errors, []);
     await page.close();
   });

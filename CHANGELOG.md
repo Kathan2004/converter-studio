@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- Theme toggle in the menu bar: System, Light or Dark, remembered on the device and applied before the page paints
+- Light/Dark toggle in the menu bar, remembered on the device and applied before the page paints (first visit starts in the device's mode)
 
 ### Changed
 

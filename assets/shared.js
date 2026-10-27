@@ -323,36 +323,31 @@
     mountThemeToggle(document.getElementById("themeToggle"));
   }
 
-  // ---------- Theme: System -> Light -> Dark, remembered on this device ----------
+  // ---------- Theme: Light / Dark toggle, remembered on this device ----------
+  // With no saved choice the page starts in the device's mode; the toggle then flips and saves.
   const THEME_KEY = "converter-studio-theme";
   const THEME_ICONS = {
-    system: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></svg>',
     light: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
     dark: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>',
   };
-  const THEME_NEXT = { system: "light", light: "dark", dark: "system" };
   function currentTheme() {
     const t = document.documentElement.dataset.theme;
-    return t === "light" || t === "dark" ? t : "system";
+    if (t === "light" || t === "dark") return t;
+    return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
   function applyTheme(theme) {
-    if (theme === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = theme;
-    try {
-      if (theme === "system") localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, theme);
-    } catch (e) { /* storage blocked: the choice lasts for this page only */ }
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* storage blocked: lasts for this page only */ }
   }
   function mountThemeToggle(btn) {
     if (!btn) return;
-    const label = { system: "Theme: follows device", light: "Theme: light", dark: "Theme: dark" };
     const render = () => {
-      const t = currentTheme();
-      btn.innerHTML = THEME_ICONS[t]; // static icon markup
-      btn.setAttribute("aria-label", `${label[t]}. Click to change.`);
-      btn.title = label[t];
+      const next = currentTheme() === "dark" ? "light" : "dark";
+      btn.innerHTML = THEME_ICONS[next]; // static icon markup: shows the mode a click switches to
+      btn.setAttribute("aria-label", `Switch to ${next} mode`);
+      btn.title = `Switch to ${next} mode`;
     };
-    btn.addEventListener("click", () => { applyTheme(THEME_NEXT[currentTheme()]); render(); });
+    btn.addEventListener("click", () => { applyTheme(currentTheme() === "dark" ? "light" : "dark"); render(); });
     render();
   }
 
