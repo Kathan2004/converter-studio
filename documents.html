@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Document Converters - Converter Studio</title>
+  <meta name="description" content="Convert Markdown to PDF, Word and HTML, Word and HTML to Markdown, extract text from PDFs, and use text utilities. Everything runs in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/shared.css" />
+  <style>
+    .md-render { font: 14px/1.6 Arial, Helvetica, sans-serif; color: #1f2328; background: #fff; overflow: auto; max-height: 420px; white-space: normal; }
+    .md-render h1, .md-render h2 { border-bottom: 1px solid #d8dee4; padding-bottom: .25em; }
+    .md-render h1, .md-render h2, .md-render h3, .md-render h4 { margin: 1em 0 .5em; line-height: 1.25; }
+    .md-render pre { background: #f3f4f6; padding: .7em; border-radius: 6px; overflow: auto; }
+    .md-render code { font-family: "IBM Plex Mono", Menlo, Consolas, monospace; font-size: .9em; background: #f3f4f6; padding: .1em .3em; border-radius: 3px; }
+    .md-render pre code { background: none; padding: 0; }
+    .md-render blockquote { margin: .8em 0; padding: .1em 1em; border-left: 4px solid #d0d7de; color: #57606a; }
+    .md-render table { border-collapse: collapse; margin: .8em 0; }
+    .md-render th, .md-render td { border: 1px solid #d0d7de; padding: 4px 10px; white-space: normal; text-align: left; position: static; }
+    .md-render th { background: #f6f8fa; }
+    .md-render img { max-width: 100%; }
+    .md-render hr { border: 0; border-top: 1px solid #d8dee4; }
+    .pdf-stage { position: fixed; left: -99999px; top: 0; max-height: none; overflow: visible; }
+    .panel h2 { margin: 0 0 4px; font-size: 1.2rem; }
+    .panel h3 { margin: 14px 0 6px; font-size: .95rem; }
+    @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html">Markdown</a>
+        <a href="data.html">Data</a>
+        <a href="documents.html" aria-current="page">Documents</a>
+        <a href="images.html">Images</a>
+        <a href="pdf.html">PDF</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
+  <main class="tool-app">
+    <header class="tool-hero"><h1>Document Converters</h1><p>Markdown, Word, HTML and PDF text conversions plus text utilities. Everything runs locally in your browser.</p></header>
+    <div class="tool-tabs" id="tabs"><button data-tab="md-to-pdf">Markdown to PDF</button><button data-tab="md-to-docx">Markdown to Word</button><button data-tab="md-to-html">Markdown to HTML</button><button data-tab="docx-to">Word to Markdown</button><button data-tab="html-to-md">HTML to Markdown</button><button data-tab="pdf-to-text">PDF to Text</button><button data-tab="text-tools">Text tools</button></div>
+
+    <section class="panel" data-panel="md-to-pdf">
+      <h2>Markdown to PDF</h2>
+      <p class="hint">Selectable-text PDF with page numbers. For the highest fidelity use Print / Save as PDF.</p>
+      <div class="drop-zone" id="pdf-drop"><p class="drop-title">Drop Markdown files here or click to browse</p><p class="drop-subtitle">.md, .markdown or .txt. Several files are converted as a batch.</p></div>
+      <div class="split">
+        <div class="field"><label for="pdf-input">Markdown</label><textarea id="pdf-input" rows="14" spellcheck="false" placeholder="Paste or type Markdown here"></textarea></div>
+        <div class="field"><span class="label">Preview</span><div class="preview md-render" id="pdf-preview" aria-live="polite"></div></div>
+      </div>
+      <div class="controls"><div class="field"><label for="pdf-size">Page size</label><select id="pdf-size"><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="field"><label for="pdf-orient">Orientation</label><select id="pdf-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div><div class="field"><label for="pdf-margin">Margin</label><select id="pdf-margin"><option value="10">10 mm</option><option value="15" selected>15 mm</option><option value="20">20 mm</option><option value="25">25 mm</option></select></div><div class="field"><label for="pdf-font">Font size</label><select id="pdf-font"><option value="12">12 px</option><option value="14" selected>14 px</option><option value="16">16 px</option></select></div><label class="check"><input type="checkbox" id="pdf-numbers" checked /> Page numbers in footer</label></div>
+      <div class="btn-row"><button class="primary" id="pdf-run" type="button">Download PDF</button><button class="ghost" id="pdf-print" type="button">Print / Save as PDF</button><button class="ghost" id="pdf-zip" type="button" disabled>Download all (.zip)</button></div>
+      <ul class="file-list" id="pdf-batch"></ul>
+      <p class="status" id="pdf-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="md-to-docx">
+      <h2>Markdown to Word</h2>
+      <p class="hint">Headings, lists, code blocks, quotes, tables and links become native Word content.</p>
+      <div class="drop-zone" id="docx-drop"><p class="drop-title">Drop Markdown files here or click to browse</p><p class="drop-subtitle">.md, .markdown or .txt. Several files are converted as a batch.</p></div>
+      <div class="split">
+        <div class="field"><label for="docx-input">Markdown</label><textarea id="docx-input" rows="14" spellcheck="false" placeholder="Paste or type Markdown here"></textarea></div>
+        <div class="field"><span class="label">Preview</span><div class="preview md-render" id="docx-preview" aria-live="polite"></div></div>
+      </div>
+      <div class="controls"><div class="field"><label for="docx-font">Body font</label><select id="docx-font"><option value="Calibri">Calibri</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option><option value="Cambria">Cambria</option></select></div><div class="field"><label for="docx-size">Body size</label><select id="docx-size"><option value="20">10 pt</option><option value="22" selected>11 pt</option><option value="24">12 pt</option></select></div></div>
+      <div class="btn-row"><button class="primary" id="docx-run" type="button">Download .docx</button><button class="ghost" id="docx-zip" type="button" disabled>Download all (.zip)</button></div>
+      <ul class="file-list" id="docx-batch"></ul>
+      <p class="status" id="docx-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="md-to-html">
+      <h2>Markdown to HTML</h2>
+      <p class="hint">Standalone, sanitized HTML document with embedded CSS.</p>
+      <div class="drop-zone" id="html-drop"><p class="drop-title">Drop Markdown files here or click to browse</p><p class="drop-subtitle">.md, .markdown or .txt. Several files are converted as a batch.</p></div>
+      <div class="split">
+        <div class="field"><label for="html-input">Markdown</label><textarea id="html-input" rows="14" spellcheck="false" placeholder="Paste or type Markdown here"></textarea></div>
+        <div class="field"><span class="label">Preview</span><div class="preview md-render" id="html-preview" aria-live="polite"></div></div>
+      </div>
+      <div class="controls"><label class="check"><input type="checkbox" id="html-toc" checked /> Table of contents</label><div class="field"><label for="html-toc-depth">TOC depth</label><select id="html-toc-depth"><option value="2">H1-H2</option><option value="3" selected>H1-H3</option><option value="4">H1-H4</option><option value="6">H1-H6</option></select></div><div class="field"><label for="html-title">Document title</label><input type="text" id="html-title" placeholder="Taken from first heading" /></div></div>
+      <div class="btn-row"><button class="primary" id="html-run" type="button">Download .html</button><button class="ghost" id="html-copy" type="button">Copy HTML</button><button class="ghost" id="html-zip" type="button" disabled>Download all (.zip)</button></div>
+      <ul class="file-list" id="html-batch"></ul>
+      <p class="status" id="html-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="docx-to">
+      <h2>Word to Markdown / HTML / Text</h2>
+      <p class="hint">Reads .docx files with mammoth. Legacy .doc files are not supported.</p>
+      <div class="drop-zone" id="dx-drop"><p class="drop-title">Drop .docx files here or click to browse</p><p class="drop-subtitle">Several files are converted as a batch.</p></div>
+      <div class="controls"><div class="field"><label for="dx-format">Output format</label><select id="dx-format"><option value="md">Markdown</option><option value="html">HTML</option><option value="txt">Plain text</option></select></div><div class="field"><label for="dx-heading">Heading style (Markdown)</label><select id="dx-heading"><option value="atx">ATX (# Heading)</option><option value="setext">Setext (underline)</option></select></div><div class="field"><label for="dx-bullet">Bullet marker</label><select id="dx-bullet"><option value="-">-</option><option value="*">*</option><option value="+">+</option></select></div><label class="check"><input type="checkbox" id="dx-images" /> Keep embedded images (data URIs)</label></div>
+      <ul class="file-list" id="dx-batch"></ul>
+      <div class="field"><label for="dx-output">Output (most recent file)</label><textarea id="dx-output" rows="14" spellcheck="false" readonly></textarea></div>
+      <div class="btn-row"><button class="primary" id="dx-download" type="button">Download</button><button class="ghost" id="dx-copy" type="button">Copy</button><button class="ghost" id="dx-zip" type="button">Download all (.zip)</button></div>
+      <p class="status" id="dx-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="html-to-md">
+      <h2>HTML to Markdown</h2>
+      <p class="hint">Input is sanitized (scripts, handlers and unsafe URLs removed) before conversion.</p>
+      <div class="drop-zone" id="hm-drop"><p class="drop-title">Drop .html files here or click to browse</p><p class="drop-subtitle">Or paste HTML below. Several files are converted as a batch.</p></div>
+      <div class="split">
+        <div class="field"><label for="hm-input">HTML</label><textarea id="hm-input" rows="14" spellcheck="false" placeholder="Paste HTML here"></textarea></div>
+        <div class="field"><label for="hm-output">Markdown</label><textarea id="hm-output" rows="14" spellcheck="false" readonly></textarea></div>
+      </div>
+      <div class="controls"><div class="field"><label for="hm-heading">Heading style</label><select id="hm-heading"><option value="atx">ATX (# Heading)</option><option value="setext">Setext (underline)</option></select></div><div class="field"><label for="hm-bullet">Bullet marker</label><select id="hm-bullet"><option value="-">-</option><option value="*">*</option><option value="+">+</option></select></div><div class="field"><label for="hm-code">Code blocks</label><select id="hm-code"><option value="fenced">Fenced</option><option value="indented">Indented</option></select></div><label class="check"><input type="checkbox" id="hm-images" checked /> Keep images</label></div>
+      <div class="btn-row"><button class="primary" id="hm-download" type="button">Download .md</button><button class="ghost" id="hm-copy" type="button">Copy</button><button class="ghost" id="hm-zip" type="button">Download all (.zip)</button></div>
+      <ul class="file-list" id="hm-batch"></ul>
+      <p class="status" id="hm-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="pdf-to-text">
+      <h2>PDF to Text</h2>
+      <p class="hint">Extracts the text layer of a PDF. Scanned PDFs without a text layer produce no output (no OCR).</p>
+      <div class="drop-zone" id="pt-drop"><p class="drop-title">Drop PDF files here or click to browse</p><p class="drop-subtitle">Several files are converted as a batch.</p></div>
+      <div class="controls"><div class="field"><label for="pt-format">Output</label><select id="pt-format"><option value="txt">Plain text (.txt)</option><option value="md">Markdown (.md)</option></select></div><div class="field"><label for="pt-sep">Page separators</label><select id="pt-sep"><option value="none">None</option><option value="marker" selected>--- Page N ---</option><option value="rule">Horizontal rule</option></select></div><div class="field"><label for="pt-tol">Line tolerance (px)</label><input type="number" id="pt-tol" min="0.5" max="10" step="0.5" value="3" /></div></div>
+      <ul class="file-list" id="pt-batch"></ul>
+      <div class="field"><label for="pt-output">Extracted text (most recent file)</label><textarea id="pt-output" rows="14" spellcheck="false" readonly></textarea></div>
+      <div class="btn-row"><button class="primary" id="pt-download" type="button">Download</button><button class="ghost" id="pt-copy" type="button">Copy</button><button class="ghost" id="pt-zip" type="button">Download all (.zip)</button></div>
+      <p class="status" id="pt-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="text-tools">
+      <h2>Text tools</h2>
+      <p class="hint">Counts, case conversion, line cleanup and encoders. Everything is computed locally.</p>
+      <div class="drop-zone" id="tt-drop"><p class="drop-title">Drop a text file here or click to browse</p><p class="drop-subtitle">.txt, .md, .csv, .json, .log and similar</p></div>
+      <div class="split">
+        <div class="field"><label for="tt-input">Input</label><textarea id="tt-input" rows="12" spellcheck="false" placeholder="Type or paste text"></textarea></div>
+        <div class="field"><label for="tt-output">Output</label><textarea id="tt-output" rows="12" spellcheck="false" readonly></textarea></div>
+      </div>
+      <p class="hint" id="tt-stats" aria-live="polite"></p>
+      <h3>Case</h3>
+      <div class="btn-row"><button class="ghost" id="tt-case-upper" type="button">UPPER</button><button class="ghost" id="tt-case-lower" type="button">lower</button><button class="ghost" id="tt-case-title" type="button">Title Case</button><button class="ghost" id="tt-case-sentence" type="button">Sentence case</button><button class="ghost" id="tt-case-camel" type="button">camelCase</button><button class="ghost" id="tt-case-snake" type="button">snake_case</button><button class="ghost" id="tt-case-kebab" type="button">kebab-case</button></div>
+      <h3>Lines</h3>
+      <div class="controls"><label class="check"><input type="checkbox" id="tt-icase" /> Ignore case</label><label class="check"><input type="checkbox" id="tt-numeric" /> Numeric sort</label><label class="check"><input type="checkbox" id="tt-collapse" /> Collapse inner spaces</label><label class="check"><input type="checkbox" id="tt-noempty" /> Drop empty lines</label></div>
+      <div class="btn-row"><button class="ghost" id="tt-dedupe" type="button">Remove duplicate lines</button><button class="ghost" id="tt-sort-asc" type="button">Sort A-Z</button><button class="ghost" id="tt-sort-desc" type="button">Sort Z-A</button><button class="ghost" id="tt-trim" type="button">Trim whitespace</button></div>
+      <h3>Encoders</h3>
+      <div class="btn-row"><button class="ghost" id="tt-b64e" type="button">Base64 encode</button><button class="ghost" id="tt-b64d" type="button">Base64 decode</button><button class="ghost" id="tt-urle" type="button">URL encode</button><button class="ghost" id="tt-urld" type="button">URL decode</button></div>
+      <div class="btn-row"><button class="ghost" id="tt-use" type="button">Use output as input</button><button class="ghost" id="tt-copy" type="button">Copy output</button><button class="ghost" id="tt-download" type="button">Download .txt</button><button class="danger" id="tt-clear" type="button">Clear</button></div>
+      <p class="status" id="tt-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <footer class="site-footer">made by kathan somani.</footer>
+  <script src="assets/shared.js"></script>
+  <script src="vendor/marked.min.js"></script>
+  <script src="vendor/purify.min.js"></script>
+  <script src="vendor/turndown.js"></script>
+  <script src="js/documents-core.js"></script>
+  <script src="js/documents.js"></script>
+</body>
+</html>

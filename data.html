@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Converters - Converter Studio</title>
+  <meta name="description" content="Convert between JSON, CSV, TSV, Excel, YAML, XML, Markdown and HTML tables, build polished Excel reports from JSON, validate, format and diff. Runs entirely in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/shared.css" />
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html">Markdown</a>
+        <a href="data.html" aria-current="page">Data</a>
+        <a href="documents.html">Documents</a>
+        <a href="images.html">Images</a>
+        <a href="pdf.html">PDF</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
+  <main class="tool-app">
+    <header class="tool-hero">
+      <h1>Data Converters</h1>
+      <p>Convert JSON, CSV, TSV, Excel, YAML, XML, Markdown and HTML tables, build formatted Excel reports, validate and diff. Everything runs in your browser.</p>
+    </header>
+    <div class="tool-tabs" id="tabs">
+      <button data-tab="convert">Convert</button>
+      <button data-tab="json-to-excel">JSON to Excel</button>
+      <button data-tab="excel-to-data">Excel to JSON/CSV</button>
+      <button data-tab="format">Format &amp; validate</button>
+      <button data-tab="diff">JSON diff</button>
+    </div>
+
+    <!-- 1. Convert -->
+    <section class="panel" data-panel="convert">
+      <div class="drop-zone" id="cv-drop">
+        <p class="drop-title">Drop data files here, or click to choose</p>
+        <p class="drop-subtitle">.json .csv .tsv .xlsx .yaml .yml .xml .md .txt - several files at once are converted as a batch</p>
+      </div>
+      <div class="field">
+        <label for="cv-text">Or paste text</label>
+        <textarea id="cv-text" rows="7" spellcheck="false" placeholder="Paste JSON, CSV, YAML, XML, a Markdown table or an HTML table"></textarea>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="cv-in">Input format</label>
+          <select id="cv-in">
+            <option value="auto">Auto-detect</option>
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="tsv">TSV</option>
+            <option value="excel">Excel (.xlsx)</option>
+            <option value="yaml">YAML</option>
+            <option value="xml">XML</option>
+            <option value="markdown">Markdown table</option>
+            <option value="html">HTML table</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cv-out">Output format</label>
+          <select id="cv-out">
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+            <option value="tsv">TSV</option>
+            <option value="excel">Excel (.xlsx)</option>
+            <option value="yaml">YAML</option>
+            <option value="xml">XML</option>
+            <option value="markdown">Markdown table</option>
+            <option value="html">HTML table</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cv-json-style">JSON style</label>
+          <select id="cv-json-style"><option value="pretty">Pretty</option><option value="min">Minified</option></select>
+        </div>
+        <div class="field">
+          <label for="cv-delim">CSV delimiter (output)</label>
+          <select id="cv-delim"><option value=",">Comma</option><option value=";">Semicolon</option><option value="|">Pipe</option></select>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="check"><input type="checkbox" id="cv-flatten" checked /> Flatten nested keys (a.b.c) for tabular outputs</label>
+        <label class="check"><input type="checkbox" id="cv-infer" checked /> Detect numbers in CSV/TSV/tables</label>
+        <label class="check"><input type="checkbox" id="cv-escape" checked /> Escape formulas</label>
+      </div>
+      <p class="hint">Escape formulas prefixes CSV, Excel, Markdown and HTML cells that start with = + - @ or a tab with a single quote, so spreadsheet apps cannot run them as formulas (CSV injection). Turn it off only for trusted data.</p>
+      <div class="btn-row">
+        <button class="primary" id="cv-run" type="button">Convert</button>
+        <button class="ghost" id="cv-zip" type="button" disabled>Download all (.zip)</button>
+        <button class="ghost" id="cv-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="cv-status" role="status" aria-live="polite"></div>
+      <ul class="file-list" id="cv-list"></ul>
+      <div class="field"><span class="label">Table preview</span><div class="preview" id="cv-table"></div></div>
+      <div class="field"><span class="label">Text preview</span><pre class="preview" id="cv-text-out"></pre></div>
+    </section>
+
+    <!-- 2. JSON to Excel -->
+    <section class="panel" data-panel="json-to-excel">
+      <div class="drop-zone" id="je-drop">
+        <p class="drop-title">Drop JSON exports here, or click to choose</p>
+        <p class="drop-subtitle">Arrays of objects, {"value":[...]} API exports, or a single object. Several files allowed.</p>
+      </div>
+      <div class="field">
+        <label for="je-text">Or paste JSON</label>
+        <textarea id="je-text" rows="5" spellcheck="false" placeholder='[{"TableName":"SecurityEvent","Plan":"Analytics","TotalRetentionDays":90}]'></textarea>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="je-sort">Sort by column</label>
+          <select id="je-sort"><option value="">No sorting</option></select>
+        </div>
+        <div class="field">
+          <label for="je-dir">Sort order</label>
+          <select id="je-dir"><option value="asc">Ascending</option><option value="desc">Descending</option></select>
+        </div>
+        <div class="field">
+          <label for="je-mode">Multiple files</label>
+          <select id="je-mode"><option value="one">One workbook, one sheet per file</option><option value="many">One workbook per file</option></select>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="check"><input type="checkbox" id="je-summary" checked /> Add Summary sheet</label>
+        <label class="check"><input type="checkbox" id="je-flatten" checked /> Flatten nested keys</label>
+        <label class="check"><input type="checkbox" id="je-escape" checked /> Escape formulas</label>
+      </div>
+      <p class="hint">The Summary sheet lists the row count and, for every column with 20 or fewer distinct values, a count per value. Escape formulas prefixes cells starting with = + - @ with a single quote to prevent spreadsheet formula injection.</p>
+      <div class="btn-row">
+        <button class="primary" id="je-run" type="button">Build Excel</button>
+        <button class="ghost" id="je-zip" type="button" disabled>Download all (.zip)</button>
+        <button class="ghost" id="je-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="je-status" role="status" aria-live="polite"></div>
+      <ul class="file-list" id="je-list"></ul>
+      <div class="field"><span class="label">Data preview</span><div class="preview" id="je-table"></div></div>
+    </section>
+
+    <!-- 3. Excel to JSON/CSV -->
+    <section class="panel" data-panel="excel-to-data">
+      <div class="drop-zone" id="ex-drop">
+        <p class="drop-title">Drop Excel workbooks (.xlsx) here, or click to choose</p>
+        <p class="drop-subtitle">Formulas export their calculated values; dates become ISO strings</p>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="ex-sheet">Sheet</label>
+          <select id="ex-sheet"><option value="__all__">All sheets</option></select>
+        </div>
+        <div class="field">
+          <label for="ex-out">Output format</label>
+          <select id="ex-out"><option value="json">JSON</option><option value="csv">CSV</option></select>
+        </div>
+        <div class="field">
+          <label for="ex-delim">CSV delimiter</label>
+          <select id="ex-delim"><option value=",">Comma</option><option value=";">Semicolon</option><option value="|">Pipe</option></select>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="check"><input type="checkbox" id="ex-header" checked /> First row contains headers</label>
+        <label class="check"><input type="checkbox" id="ex-escape" checked /> Escape formulas (CSV)</label>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="ex-run" type="button" disabled>Export</button>
+        <button class="ghost" id="ex-zip" type="button" disabled>Download all (.zip)</button>
+        <button class="ghost" id="ex-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="ex-status" role="status" aria-live="polite"></div>
+      <ul class="file-list" id="ex-list"></ul>
+      <div class="field"><span class="label">Preview</span><div class="preview" id="ex-table"></div></div>
+    </section>
+
+    <!-- 4. Format & validate -->
+    <section class="panel" data-panel="format">
+      <div class="drop-zone" id="fm-drop">
+        <p class="drop-title">Drop a JSON, YAML or XML file, or click to choose</p>
+        <p class="drop-subtitle">Or paste below</p>
+      </div>
+      <div class="split">
+        <div class="field">
+          <label for="fm-in">Input</label>
+          <textarea id="fm-in" rows="14" spellcheck="false"></textarea>
+        </div>
+        <div class="field">
+          <label for="fm-out-text">Output</label>
+          <textarea id="fm-out-text" rows="14" spellcheck="false" readonly></textarea>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="fm-format">Format</label>
+          <select id="fm-format"><option value="auto">Auto-detect</option><option value="json">JSON</option><option value="yaml">YAML</option><option value="xml">XML</option></select>
+        </div>
+        <div class="field">
+          <label for="fm-indent">Indent</label>
+          <select id="fm-indent"><option value="2">2 spaces</option><option value="4">4 spaces</option></select>
+        </div>
+        <label class="check"><input type="checkbox" id="fm-sort" /> Sort keys (JSON, YAML)</label>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="fm-validate" type="button">Validate</button>
+        <button class="ghost" id="fm-pretty" type="button">Pretty-print</button>
+        <button class="ghost" id="fm-minify" type="button">Minify</button>
+        <button class="ghost" id="fm-copy" type="button">Copy output</button>
+        <button class="ghost" id="fm-download" type="button">Download output</button>
+        <button class="ghost" id="fm-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="fm-status" role="status" aria-live="polite"></div>
+      <pre class="preview is-hidden" id="fm-context"></pre>
+    </section>
+
+    <!-- 5. JSON diff -->
+    <section class="panel" data-panel="diff">
+      <div class="split">
+        <div class="field">
+          <label for="df-a">Original (A)</label>
+          <textarea id="df-a" rows="12" spellcheck="false" placeholder="Paste JSON or YAML"></textarea>
+          <div class="drop-zone" id="df-drop-a"><p class="drop-title">Drop file A</p></div>
+        </div>
+        <div class="field">
+          <label for="df-b">Changed (B)</label>
+          <textarea id="df-b" rows="12" spellcheck="false" placeholder="Paste JSON or YAML"></textarea>
+          <div class="drop-zone" id="df-drop-b"><p class="drop-title">Drop file B</p></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="df-run" type="button">Compare</button>
+        <button class="ghost" id="df-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="df-status" role="status" aria-live="polite"></div>
+      <div class="preview" id="df-table"></div>
+    </section>
+  </main>
+  <footer class="site-footer">made by kathan somani.</footer>
+  <script src="assets/shared.js"></script>
+  <script src="js/data-core.js"></script>
+  <script src="js/data.js"></script>
+</body>
+</html>

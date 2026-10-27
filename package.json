@@ -1,8 +1,8 @@
 {
   "name": "md-pdf-serverless",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Serverless Markdown to PDF conversion using Netlify Functions",
+  "description": "Converter Studio: browser-only converters and compressors for Markdown, data, documents, images and PDF, plus a serverless Markdown renderer",
   "type": "commonjs",
   "scripts": {
     "dev": "netlify dev",

@@ -3,13 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Markdown to PDF Studio</title>
+  <title>Converter Studio - Markdown, Data, Documents, Images, PDF</title>
+  <meta name="description" content="Free browser-based converters and compressors for Markdown, JSON, CSV, Excel, YAML, XML, Word, PDF and images. Files never leave your device." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/shared.css" />
   <link rel="stylesheet" href="ui.css" />
 </head>
 <body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html" aria-current="page">Markdown</a>
+        <a href="data.html">Data</a>
+        <a href="documents.html">Documents</a>
+        <a href="images.html">Images</a>
+        <a href="pdf.html">PDF</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
   <div class="bg-shape bg-shape-a" aria-hidden="true"></div>
   <div class="bg-shape bg-shape-b" aria-hidden="true"></div>
 
@@ -18,6 +33,16 @@
       <h1>Markdown to HTML Studio</h1>
       <p class="subtitle">Upload markdown, preview it, and download a clean readable HTML file.</p>
     </header>
+
+    <section class="panel hub" aria-label="All tools">
+      <h2>All tools</h2>
+      <div class="hub-grid">
+        <a class="hub-card" href="data.html"><strong>Data converters</strong><span>JSON, CSV, TSV, Excel, YAML, XML and Markdown tables in any direction. JSON to formatted Excel, validate, diff.</span></a>
+        <a class="hub-card" href="documents.html"><strong>Document converters</strong><span>Markdown to PDF, Word and HTML. Word to Markdown. PDF to text. Text utilities.</span></a>
+        <a class="hub-card" href="images.html"><strong>Image tools</strong><span>Compress, convert (PNG, JPEG, WebP, AVIF, ICO), resize, crop, rotate and strip EXIF/GPS metadata.</span></a>
+        <a class="hub-card" href="pdf.html"><strong>PDF tools</strong><span>Merge, split, compress, reorder pages, images to PDF, PDF to images, watermark, page numbers, metadata.</span></a>
+      </div>
+    </section>
 
     <section class="panel workspace" aria-label="Workspace">
       <div class="toolbar">

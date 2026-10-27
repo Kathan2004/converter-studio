@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF Tools - Converter Studio</title>
+  <meta name="description" content="Merge, split, reorder, compress, stamp and convert PDFs entirely in your browser. Files never leave your device." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/shared.css" />
+  <style>
+    .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .page-card { display: grid; gap: 4px; justify-items: center; padding: 8px; border: 2px solid var(--line); border-radius: 8px; background: #fff; font: inherit; font-size: 0.8rem; color: var(--ink); cursor: pointer; }
+    .page-card[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+    .page-card .frame { width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .page-card canvas { max-width: 100%; max-height: 100%; box-shadow: 0 1px 4px rgba(0,0,0,0.25); transition: transform 0.15s; }
+    .result-img { width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .compare { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--mono); font-size: 0.85rem; }
+    .warn { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fff7ed; border: 1px solid #fed7aa; color: #7c2d12; font-size: 0.88rem; }
+    fieldset.group { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 10px; }
+    fieldset.group legend { padding: 0 6px; font-weight: 600; font-size: 0.9rem; }
+    .field input[type="datetime-local"] { font: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #fff; color: var(--ink); }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html">Markdown</a>
+        <a href="data.html">Data</a>
+        <a href="documents.html">Documents</a>
+        <a href="images.html">Images</a>
+        <a href="pdf.html" aria-current="page">PDF</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
+  <main class="tool-app">
+    <header class="tool-hero">
+      <h1>PDF Tools</h1>
+      <p>Merge, split, reorder, compress, stamp, edit metadata and convert PDFs. Everything runs locally in your browser.</p>
+    </header>
+    <div class="tool-tabs" id="tabs">
+      <button data-tab="merge">Merge</button>
+      <button data-tab="split">Split</button>
+      <button data-tab="pages">Pages</button>
+      <button data-tab="compress">Compress</button>
+      <button data-tab="images-to-pdf">Images to PDF</button>
+      <button data-tab="pdf-to-images">PDF to images</button>
+      <button data-tab="stamp">Rotate / stamp</button>
+      <button data-tab="metadata">Metadata</button>
+    </div>
+
+    <!-- Merge -->
+    <section class="panel" data-panel="merge">
+      <h2>Merge PDFs</h2>
+      <div class="drop-zone" id="merge-drop"><p class="drop-title">Drop PDFs or images here, or click to choose</p><p class="drop-subtitle">PDF, JPG, PNG. Add as many as you like, then reorder.</p></div>
+      <ul class="file-list" id="merge-list" aria-label="Files to merge"></ul>
+      <div class="controls">
+        <div class="field"><label for="merge-imgsize">Image pages</label>
+          <select id="merge-imgsize"><option value="fit">Sized to the image</option><option value="a4">A4, image fitted</option></select></div>
+      </div>
+      <div class="btn-row"><button class="primary" id="merge-run" disabled>Merge and download</button><button class="ghost" id="merge-clear" disabled>Clear list</button></div>
+      <div class="status" id="merge-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Split -->
+    <section class="panel" data-panel="split">
+      <h2>Split a PDF</h2>
+      <div class="drop-zone" id="split-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">Multiple outputs are downloaded as a .zip.</p></div>
+      <p class="hint" id="split-info"></p>
+      <div class="controls">
+        <div class="field"><label for="split-mode">Mode</label>
+          <select id="split-mode"><option value="each">Every page to its own file</option><option value="ranges">By ranges</option><option value="every">Every N pages</option></select></div>
+        <div class="field is-hidden" id="split-ranges-field"><label for="split-ranges">Ranges (one file each)</label><input type="text" id="split-ranges" value="1-3, 5, 8-" /></div>
+        <div class="field is-hidden" id="split-n-field"><label for="split-n">Pages per file</label><input type="number" id="split-n" min="1" value="2" /></div>
+      </div>
+      <div class="btn-row"><button class="primary" id="split-run" disabled>Split and download</button></div>
+      <div class="status" id="split-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Pages -->
+    <section class="panel" data-panel="pages">
+      <h2>Extract, remove, rotate and reorder pages</h2>
+      <div class="drop-zone" id="pages-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">Click thumbnails to select pages.</p></div>
+      <p class="hint" id="pages-info"></p>
+      <div class="btn-row" role="toolbar" aria-label="Page actions">
+        <button class="ghost" id="pages-all">Select all</button>
+        <button class="ghost" id="pages-none">Select none</button>
+        <button class="ghost" id="pages-invert">Invert</button>
+        <button class="ghost" id="pages-keep">Keep selected</button>
+        <button class="ghost" id="pages-delete">Delete selected</button>
+        <button class="ghost" id="pages-r90">Rotate 90</button>
+        <button class="ghost" id="pages-r180">Rotate 180</button>
+        <button class="ghost" id="pages-r270">Rotate 270</button>
+        <button class="ghost" id="pages-left">Move earlier</button>
+        <button class="ghost" id="pages-right">Move later</button>
+        <button class="ghost" id="pages-reset">Reset</button>
+      </div>
+      <div class="controls">
+        <div class="field"><label for="pages-order">Order (current positions, e.g. 3,1,2; unlisted pages are removed)</label><input type="text" id="pages-order" placeholder="3,1,2" /></div>
+        <button class="ghost" id="pages-apply-order">Apply order</button>
+      </div>
+      <div class="thumb-grid" id="pages-grid" aria-label="Pages"></div>
+      <div class="btn-row"><button class="primary" id="pages-save" disabled>Save PDF</button></div>
+      <div class="status" id="pages-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Compress -->
+    <section class="panel" data-panel="compress">
+      <h2>Compress a PDF</h2>
+      <div class="drop-zone" id="compress-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">The smaller of the original and the result is kept.</p></div>
+      <p class="hint" id="compress-info"></p>
+      <div class="controls">
+        <div class="field"><label for="compress-mode">Mode</label>
+          <select id="compress-mode"><option value="lossless">Lossless (re-save, object streams)</option><option value="strong">Strong (rasterize pages to JPEG)</option></select></div>
+        <label class="check" id="compress-strip-wrap"><input type="checkbox" id="compress-strip" /> Strip metadata</label>
+        <div class="field is-hidden" data-strong><label for="compress-dpi">Resolution</label>
+          <select id="compress-dpi"><option value="72">72 DPI</option><option value="100">100 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option></select></div>
+        <div class="field is-hidden" data-strong><label for="compress-quality">JPEG quality: <output id="compress-quality-out">70</output></label>
+          <input type="range" id="compress-quality" min="10" max="95" value="70" /></div>
+      </div>
+      <p class="warn is-hidden" id="compress-warn">Strong mode turns every page into an image. Text will no longer be selectable or searchable, and links and forms are lost.</p>
+      <div class="btn-row"><button class="primary" id="compress-run" disabled>Compress</button><button class="ghost" id="compress-download" disabled>Download</button></div>
+      <div class="compare" id="compress-result" aria-live="polite"></div>
+      <div class="status" id="compress-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Images to PDF -->
+    <section class="panel" data-panel="images-to-pdf">
+      <h2>Images to PDF</h2>
+      <div class="drop-zone" id="i2p-drop"><p class="drop-title">Drop images here, or click to choose</p><p class="drop-subtitle">JPG, PNG, WebP, GIF, BMP. One image per page.</p></div>
+      <ul class="file-list" id="i2p-list" aria-label="Images"></ul>
+      <div class="controls">
+        <div class="field"><label for="i2p-size">Page size</label>
+          <select id="i2p-size"><option value="fit">Fit to image</option><option value="a4" selected>A4</option><option value="letter">Letter</option></select></div>
+        <div class="field"><label for="i2p-orient">Orientation</label>
+          <select id="i2p-orient"><option value="auto">Auto</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+        <div class="field"><label for="i2p-margin">Margin (pt)</label><input type="number" id="i2p-margin" min="0" max="200" value="24" /></div>
+      </div>
+      <div class="btn-row"><button class="primary" id="i2p-run" disabled>Create PDF</button><button class="ghost" id="i2p-clear" disabled>Clear list</button></div>
+      <div class="status" id="i2p-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- PDF to images -->
+    <section class="panel" data-panel="pdf-to-images">
+      <h2>PDF to images</h2>
+      <div class="drop-zone" id="p2i-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">Pages are rendered locally.</p></div>
+      <p class="hint" id="p2i-info"></p>
+      <div class="controls">
+        <div class="field"><label for="p2i-format">Format</label><select id="p2i-format"><option value="png">PNG</option><option value="jpeg">JPEG</option></select></div>
+        <div class="field"><label for="p2i-dpi">Resolution</label>
+          <select id="p2i-dpi"><option value="72">72 DPI</option><option value="100">100 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option><option value="300">300 DPI</option></select></div>
+        <div class="field"><label for="p2i-pages">Pages (blank = all)</label><input type="text" id="p2i-pages" placeholder="1-3, 5, 8-" /></div>
+      </div>
+      <div class="btn-row"><button class="primary" id="p2i-run" disabled>Render</button><button class="ghost" id="p2i-zip" disabled>Download all (.zip)</button></div>
+      <ul class="file-list" id="p2i-results" aria-label="Rendered pages"></ul>
+      <div class="status" id="p2i-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Rotate / watermark / page numbers -->
+    <section class="panel" data-panel="stamp">
+      <h2>Rotate, watermark and page numbers</h2>
+      <div class="drop-zone" id="stamp-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">Apply any combination, then download.</p></div>
+      <p class="hint" id="stamp-info"></p>
+      <div class="grid-2">
+        <fieldset class="group"><legend>Rotate all pages</legend>
+          <div class="field"><label for="stamp-rotate">Rotation</label>
+            <select id="stamp-rotate"><option value="0">None</option><option value="90">90 clockwise</option><option value="180">180</option><option value="270">270 clockwise</option></select></div>
+        </fieldset>
+        <fieldset class="group"><legend>Text watermark</legend>
+          <label class="check"><input type="checkbox" id="stamp-wm" /> Add watermark</label>
+          <div class="field"><label for="stamp-wm-text">Text</label><input type="text" id="stamp-wm-text" value="CONFIDENTIAL" /></div>
+          <div class="controls">
+            <div class="field"><label for="stamp-wm-size">Size (pt)</label><input type="number" id="stamp-wm-size" min="8" max="300" value="64" /></div>
+            <div class="field"><label for="stamp-wm-opacity">Opacity: <output id="stamp-wm-opacity-out">0.25</output></label><input type="range" id="stamp-wm-opacity" min="0.05" max="1" step="0.05" value="0.25" /></div>
+          </div>
+          <label class="check"><input type="checkbox" id="stamp-wm-diag" checked /> Diagonal</label>
+        </fieldset>
+        <fieldset class="group"><legend>Page numbers</legend>
+          <label class="check"><input type="checkbox" id="stamp-pn" /> Add page numbers</label>
+          <div class="controls">
+            <div class="field"><label for="stamp-pn-pos">Position</label><select id="stamp-pn-pos"><option value="bottom-center">Bottom center</option><option value="bottom-right">Bottom right</option></select></div>
+            <div class="field"><label for="stamp-pn-start">Start number</label><input type="number" id="stamp-pn-start" min="0" value="1" /></div>
+          </div>
+          <div class="field"><label for="stamp-pn-format">Format ({n}, {total})</label><input type="text" id="stamp-pn-format" value="Page {n} of {total}" /></div>
+        </fieldset>
+      </div>
+      <div class="btn-row"><button class="primary" id="stamp-run" disabled>Apply and download</button></div>
+      <div class="status" id="stamp-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Metadata -->
+    <section class="panel" data-panel="metadata">
+      <h2>PDF metadata</h2>
+      <div class="drop-zone" id="meta-drop"><p class="drop-title">Drop a PDF here, or click to choose</p><p class="drop-subtitle">View and edit document properties.</p></div>
+      <p class="hint" id="meta-info"></p>
+      <div class="grid-2">
+        <div class="field"><label for="meta-title">Title</label><input type="text" id="meta-title" /></div>
+        <div class="field"><label for="meta-author">Author</label><input type="text" id="meta-author" /></div>
+        <div class="field"><label for="meta-subject">Subject</label><input type="text" id="meta-subject" /></div>
+        <div class="field"><label for="meta-keywords">Keywords (comma separated)</label><input type="text" id="meta-keywords" /></div>
+        <div class="field"><label for="meta-creator">Creator</label><input type="text" id="meta-creator" /></div>
+        <div class="field"><label for="meta-producer">Producer</label><input type="text" id="meta-producer" /></div>
+        <div class="field"><label for="meta-created">Created</label><input type="datetime-local" id="meta-created" /></div>
+        <div class="field"><label for="meta-modified">Modified</label><input type="datetime-local" id="meta-modified" /></div>
+      </div>
+      <div class="btn-row"><button class="primary" id="meta-save" disabled>Save PDF</button><button class="danger" id="meta-strip" disabled>Remove all metadata and download</button></div>
+      <div class="status" id="meta-status" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer class="site-footer">made by kathan somani.</footer>
+  <script src="assets/shared.js"></script>
+  <script src="js/pdf-core.js"></script>
+  <script src="js/pdf.js"></script>
+</body>
+</html>

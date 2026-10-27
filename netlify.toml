@@ -11,6 +11,14 @@
   included_files = ["node_modules/pdfkit/js/data/**"]
 
 [[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob:; media-src 'self' data: blob:; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+[[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"

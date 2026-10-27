@@ -18,7 +18,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --check ui.js && node --check netlify/functions/md_to_pdf.js
+      - name: Syntax check
+        run: for f in ui.js assets/*.js js/*.js netlify/functions/*.js; do node --check "$f"; done
       - run: npm test
         env:
           CHROMIUM_PATH: /usr/bin/google-chrome

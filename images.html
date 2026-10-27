@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Tools - Converter Studio</title>
+  <meta name="description" content="Compress, convert, resize, crop, rotate, strip metadata from and Base64-encode images in your browser. Nothing is uploaded." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/shared.css" />
+  <style>
+    .file-item { flex-wrap: wrap; }
+    .file-item .note { flex-basis: 100%; margin: 0; font-size: 0.82rem; color: var(--muted); }
+    .file-item .note.warn { color: var(--danger); font-weight: 600; }
+    .file-item .note.error { color: var(--danger); }
+    .opt-note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+    .preview canvas { max-width: 100%; height: auto; display: block; }
+    .preview img { max-width: 100%; height: auto; display: block; }
+    .out-box { min-height: 120px; }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html">Markdown</a>
+        <a href="data.html">Data</a>
+        <a href="documents.html">Documents</a>
+        <a href="images.html" aria-current="page">Images</a>
+        <a href="pdf.html">PDF</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
+  <main class="tool-app">
+    <header class="tool-hero"><h1>Image Tools</h1><p>Compress, convert, resize, crop, clean and encode images. Everything runs in your browser; nothing is uploaded.</p></header>
+    <div class="tool-tabs" id="tabs">
+      <button data-tab="compress">Compress</button>
+      <button data-tab="convert">Convert</button>
+      <button data-tab="resize">Resize</button>
+      <button data-tab="transform">Crop &amp; rotate</button>
+      <button data-tab="metadata">Strip metadata</button>
+      <button data-tab="base64">Image to Base64</button>
+    </div>
+
+    <section class="panel" data-panel="compress">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
+      <div class="controls">
+        <div class="field"><label for="c-quality">Quality: <output id="c-quality-out">0.80</output></label><input id="c-quality" type="range" min="0.05" max="1" step="0.05" value="0.8" /></div>
+        <div class="field"><label for="c-format">Output format</label><select id="c-format"><option value="keep">Keep original format</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option></select></div>
+        <div class="field"><label for="c-max">Max width/height (px)</label><input id="c-max" type="number" min="1" step="1" placeholder="no limit" /></div>
+        <label class="check"><input id="c-target-on" type="checkbox" /> Target size</label>
+        <div class="field"><label for="c-target-kb">Target size (KB)</label><input id="c-target-kb" type="number" min="1" step="1" value="200" /></div>
+      </div>
+      <p class="opt-note" id="c-support-note"></p>
+      <p class="opt-note">Target size searches for the highest quality that fits (up to 8 attempts) and applies to JPEG, WebP and AVIF. PNG is lossless, so quality does not change it; WebP gives the best savings for PNG files. If the result is larger than the original, the original is kept.</p>
+      <div class="btn-row">
+        <button type="button" class="primary" data-role="run" disabled>Compress</button>
+        <button type="button" class="ghost" data-role="zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" data-role="clear" disabled>Clear list</button>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="convert">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
+      <div class="controls">
+        <div class="field"><label for="v-format">Convert to</label><select id="v-format"><option value="image/png" selected>PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option><option value="ico">ICO</option></select></div>
+        <div class="field" id="v-quality-field"><label for="v-quality">Quality: <output id="v-quality-out">0.92</output></label><input id="v-quality" type="range" min="0.05" max="1" step="0.01" value="0.92" /></div>
+        <div class="field"><label for="v-bg">Background colour (JPEG / ICO)</label><input id="v-bg" type="color" value="#ffffff" /></div>
+        <div class="field"><label for="v-svgw">SVG width (px)</label><input id="v-svgw" type="number" min="1" max="8192" value="1024" /></div>
+      </div>
+      <div class="controls is-hidden" id="v-ico-opts">
+        <fieldset style="border:0;padding:0;margin:0"><legend class="opt-note">ICO sizes</legend>
+          <label class="check"><input type="checkbox" name="v-ico-size" value="16" checked /> 16</label>
+          <label class="check"><input type="checkbox" name="v-ico-size" value="32" checked /> 32</label>
+          <label class="check"><input type="checkbox" name="v-ico-size" value="48" checked /> 48</label>
+          <label class="check"><input type="checkbox" name="v-ico-size" value="256" /> 256</label>
+        </fieldset>
+        <label class="check"><input id="v-ico-fill" type="checkbox" /> Fill ICO transparency with the background colour</label>
+      </div>
+      <p class="opt-note" id="v-support-note"></p>
+      <p class="opt-note">JPEG has no transparency, so transparent areas take the background colour. SVG files are rasterized at the chosen width.</p>
+      <div class="btn-row">
+        <button type="button" class="primary" data-role="run" disabled>Convert</button>
+        <button type="button" class="ghost" data-role="zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" data-role="clear" disabled>Clear list</button>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="resize">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
+      <div class="controls">
+        <div class="field"><label for="r-mode">Resize by</label><select id="r-mode"><option value="dimensions">Width / height</option><option value="percent">Percentage</option><option value="fit">Fit within box</option></select></div>
+        <div class="field" data-mode="dimensions"><label for="r-w">Width (px)</label><input id="r-w" type="number" min="1" step="1" /></div>
+        <div class="field" data-mode="dimensions"><label for="r-h">Height (px)</label><input id="r-h" type="number" min="1" step="1" /></div>
+        <label class="check" data-mode="dimensions"><input id="r-lock" type="checkbox" checked /> Lock aspect ratio</label>
+        <div class="field is-hidden" data-mode="percent"><label for="r-pct">Percentage</label><input id="r-pct" type="number" min="1" step="1" value="50" /></div>
+        <div class="field is-hidden" data-mode="fit"><label for="r-fw">Max width (px)</label><input id="r-fw" type="number" min="1" step="1" value="1600" /></div>
+        <div class="field is-hidden" data-mode="fit"><label for="r-fh">Max height (px)</label><input id="r-fh" type="number" min="1" step="1" value="1600" /></div>
+        <label class="check"><input id="r-noenlarge" type="checkbox" checked /> Do not enlarge</label>
+        <div class="field"><label for="r-format">Output format</label><select id="r-format"><option value="keep">Keep original format</option><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option></select></div>
+        <div class="field"><label for="r-quality">Quality: <output id="r-quality-out">0.92</output></label><input id="r-quality" type="range" min="0.05" max="1" step="0.01" value="0.92" /></div>
+      </div>
+      <p class="opt-note" id="r-support-note"></p>
+      <p class="opt-note">With the aspect ratio locked, the width drives the height if both are given. Large reductions are done in steps for a cleaner result.</p>
+      <div class="btn-row">
+        <button type="button" class="primary" data-role="run" disabled>Resize</button>
+        <button type="button" class="ghost" data-role="zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" data-role="clear" disabled>Clear list</button>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="transform">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
+      <div class="controls">
+        <div class="field"><label for="t-rotate">Rotate</label><select id="t-rotate"><option value="0">None</option><option value="90">90 clockwise</option><option value="180">180</option><option value="270">270 clockwise</option></select></div>
+        <label class="check"><input id="t-fliph" type="checkbox" /> Flip horizontal</label>
+        <label class="check"><input id="t-flipv" type="checkbox" /> Flip vertical</label>
+        <div class="field"><label for="t-ratio">Crop</label><select id="t-ratio"><option value="none">No crop</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="16:9">16:9</option><option value="3:2">3:2</option><option value="9:16">9:16</option><option value="free">Free (numeric)</option></select></div>
+      </div>
+      <div class="controls is-hidden" id="t-free">
+        <div class="field"><label for="t-x">X (px)</label><input id="t-x" type="number" min="0" step="1" value="0" /></div>
+        <div class="field"><label for="t-y">Y (px)</label><input id="t-y" type="number" min="0" step="1" value="0" /></div>
+        <div class="field"><label for="t-w">Width (px)</label><input id="t-w" type="number" min="1" step="1" placeholder="rest" /></div>
+        <div class="field"><label for="t-h">Height (px)</label><input id="t-h" type="number" min="1" step="1" placeholder="rest" /></div>
+      </div>
+      <div class="controls">
+        <div class="field"><label for="t-format">Output format</label><select id="t-format"><option value="keep">Keep original format</option><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option></select></div>
+        <div class="field"><label for="t-quality">Quality: <output id="t-quality-out">0.92</output></label><input id="t-quality" type="range" min="0.05" max="1" step="0.01" value="0.92" /></div>
+      </div>
+      <p class="opt-note" id="t-support-note"></p>
+      <p class="opt-note">Rotation and flips are applied first; crop coordinates refer to the rotated image. Presets crop the largest centered area. The preview shows the first image in the list.</p>
+      <div class="preview" id="t-preview" aria-live="polite"><p class="hint">Add an image to see a live preview.</p></div>
+      <p class="opt-note" id="t-dims"></p>
+      <div class="btn-row">
+        <button type="button" class="primary" data-role="run" disabled>Apply</button>
+        <button type="button" class="ghost" data-role="zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" data-role="clear" disabled>Clear list</button>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="metadata">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
+      <div class="controls">
+        <label class="check"><input id="m-icc" type="checkbox" checked /> Keep colour profile (JPEG)</label>
+      </div>
+      <p class="opt-note">JPEG and PNG are cleaned losslessly by removing metadata blocks directly from the file. Other formats are re-encoded through a canvas. Removing the EXIF orientation tag can change how a rotated photo is displayed.</p>
+      <div class="btn-row">
+        <button type="button" class="primary" data-role="run" disabled>Strip metadata</button>
+        <button type="button" class="ghost" data-role="zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" data-role="clear" disabled>Clear list</button>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="base64">
+      <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">Each image is converted to a Base64 string.</p></div>
+      <div class="controls">
+        <div class="field"><label for="b-mode">Output</label><select id="b-mode"><option value="dataurl">Data URL</option><option value="raw">Raw Base64</option></select></div>
+      </div>
+      <p class="status" data-role="status" role="status" aria-live="polite"></p>
+      <ul class="file-list" data-role="list"></ul>
+      <div class="field"><label for="b-out">Encoded output</label><textarea id="b-out" class="out-box" readonly spellcheck="false"></textarea></div>
+      <div class="btn-row"><button type="button" class="primary" id="b-copy" disabled>Copy</button><button type="button" class="ghost" id="b-save" disabled>Download as .txt</button></div>
+      <hr />
+      <h2>Base64 to image</h2>
+      <div class="field"><label for="b-in">Paste a data URL or raw Base64</label><textarea id="b-in" spellcheck="false" placeholder="data:image/png;base64,..."></textarea></div>
+      <div class="btn-row"><button type="button" class="primary" id="b-decode">Decode</button><button type="button" class="ghost" id="b-dl" disabled>Download image</button></div>
+      <p class="status" id="b-dstatus" role="status" aria-live="polite"></p>
+      <div class="preview" id="b-preview"><p class="hint">Decoded image appears here.</p></div>
+    </section>
+  </main>
+  <footer class="site-footer">made by kathan somani.</footer>
+  <script src="assets/shared.js"></script>
+  <script src="js/images-core.js"></script>
+  <script src="js/images.js"></script>
+</body>
+</html>
