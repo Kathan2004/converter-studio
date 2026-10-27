@@ -53,6 +53,9 @@
     { cat: "documents", tab: "docx-to", name: "Word to Markdown", desc: "Or HTML or plain text", accepts: ["docx"], multi: true, short: "Word to Markdown", tile: "Word to Markdown", icon: "lines", featured: true, keywords: "docx word markdown html text" },
     { cat: "documents", tab: "html-to-md", name: "HTML to Markdown", desc: "Clean GitHub-style Markdown", accepts: ["html", "htm"], multi: true, short: "HTML to Markdown", tile: "HTML to Markdown", icon: "lines", keywords: "html markdown turndown" },
     { cat: "documents", tab: "pdf-to-text", name: "PDF to text", desc: "Text layer, page by page", accepts: ["pdf"], multi: true, short: "PDF to text", tile: "PDF to text", icon: "scan", keywords: "pdf text extract copy" },
+    { cat: "documents", tab: "word-to-pdf", name: "Word to PDF", desc: "DOCX to a clean PDF", accepts: ["docx"], multi: true, short: "Word to PDF", tile: "Word to PDF", icon: "doc", keywords: "docx word pdf convert export" },
+    { cat: "documents", tab: "html-to-pdf", name: "HTML to PDF", desc: "Web page file to PDF", accepts: ["html", "htm"], multi: true, short: "HTML to PDF", tile: "HTML to PDF", icon: "code", keywords: "html web page pdf convert print" },
+    { cat: "documents", tab: "ocr-pdf", name: "Searchable PDF", desc: "OCR a scan into selectable text", accepts: ["pdf", "png", "jpg", "jpeg"], multi: true, short: "Searchable PDF", tile: "Searchable PDF", icon: "scan", keywords: "ocr scan searchable text layer pdf" },
     { cat: "documents", tab: "text-tools", name: "Text utilities", desc: "Case, Base64, URL, counts", accepts: ["txt", "md", "csv", "log"], short: "Text tools", tile: "Text tools", icon: "type", keywords: "uppercase lowercase word count base64 url encode dedupe sort" },
     { cat: "documents", page: "markdown.html", tab: "pipeline", name: "Markdown to JSON or Excel", desc: "Batch files for AI pipelines", accepts: ["md", "markdown"], multi: true, short: "Markdown to JSON", tile: "Markdown to JSON", icon: "braces", keywords: "markdown json excel ai ingestion batch" },
 
@@ -67,7 +70,7 @@
     t.page = t.page || byCat[t.cat].page;
     t.href = `${t.page}#${t.tab}`;
     t.id = `${t.cat}/${t.tab}`;
-    t.tint = t.id === "images/ocr" || t.id === "documents/pdf-to-text" ? "purple" : byCat[t.cat].tint;
+    t.tint = ["images/ocr", "documents/pdf-to-text", "documents/ocr-pdf"].includes(t.id) ? "purple" : byCat[t.cat].tint;
   });
 
   function extOf(name) {

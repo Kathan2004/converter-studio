@@ -138,7 +138,7 @@
     }
 
     async function runSingle() {
-      if (!input.value.trim()) { T.setStatus(status, "Enter or drop some Markdown first.", "error"); return; }
+      if (!input.value.trim()) { T.setStatus(status, `Enter or drop some ${cfg.noun || "Markdown"} first.`, "error"); return; }
       await guarded(status, [runBtn], async () => {
         T.setStatus(status, "Converting...", "busy");
         const out = await cfg.convert(input.value, currentName);
@@ -172,7 +172,7 @@
     zipBtn.addEventListener("click", () => downloadZip(batchResults, cfg.zipName));
 
     T.mountDropZone($(`${cfg.prefix}-drop`), {
-      accept: ".md,.markdown,.txt",
+      accept: cfg.accept || ".md,.markdown,.txt",
       multiple: true,
       onReject: (m) => T.setStatus(status, m, "error"),
       onFiles: async (files) => {
@@ -200,33 +200,40 @@
 
   const PAGE_MM = { a4: [210, 297], letter: [215.9, 279.4] };
 
-  function pdfOptions() {
-    const size = $("pdf-size").value;
-    const landscape = $("pdf-orient").value === "landscape";
+  /** Page options from the controls of one tab; ids are `<prefix>-size`, `-orient`, `-margin`, optional `-font`, `-numbers`. */
+  function pdfOptions(prefix = "pdf") {
+    const size = $(`${prefix}-size`).value;
+    const landscape = $(`${prefix}-orient`).value === "landscape";
     const [w, h] = PAGE_MM[size];
-    const margin = Number($("pdf-margin").value);
+    const margin = Number($(`${prefix}-margin`).value);
+    const font = $(`${prefix}-font`);
+    const numbers = $(`${prefix}-numbers`);
     return {
       size,
       landscape,
       pageW: landscape ? h : w,
       pageH: landscape ? w : h,
       margin,
-      fontPx: Number($("pdf-font").value),
-      numbers: $("pdf-numbers").checked,
+      fontPx: font ? Number(font.value) : 14,
+      numbers: numbers ? numbers.checked : true,
     };
   }
 
   async function renderMarkdownPdf(md, name) {
+    return renderHtmlPdf(mdToSafeHtml(md), name, pdfOptions());
+  }
+
+  /** The shared PDF pipeline: sanitized HTML -> selectable-text PDF (html2canvas + jsPDF). */
+  async function renderHtmlPdf(safeHtml, name, o) {
     await loadScript("vendor/html2canvas.min.js");
     await loadScript("vendor/jspdf.umd.min.js");
-    const o = pdfOptions();
     const contentMm = o.pageW - o.margin * 2;
     const contentPx = Math.round((contentMm * 96) / 25.4);
     const stage = document.createElement("div");
     stage.className = "md-render pdf-stage";
     stage.style.width = `${contentPx}px`;
     stage.style.fontSize = `${o.fontPx}px`;
-    stage.innerHTML = mdToSafeHtml(md);
+    stage.innerHTML = safeHtml;
     document.body.appendChild(stage);
     try {
       const doc = new jspdf.jsPDF({ unit: "mm", format: o.size, orientation: o.landscape ? "landscape" : "portrait", compress: true });
@@ -667,6 +674,90 @@ h1, h2, h3, h4, tr, pre, blockquote, img { break-inside: avoid; }`;
       },
     });
   })();
+
+  // ---------- 8. Word to PDF ----------
+
+  /** Print options for the new PDF tabs share the Markdown tool's pipeline. */
+  const wordTab = (() => {
+    const status = $("wp-status");
+    const batchEl = $("wp-batch");
+    const zipBtn = $("wp-zip");
+    let results = [];
+
+    async function convert(file) {
+      await loadScript("vendor/mammoth.browser.min.js");
+      const arrayBuffer = await T.readAsArrayBuffer(file);
+      const res = await mammoth.convertToHtml({ arrayBuffer }, {
+        // Keep pictures inline as data: URIs so they survive into the PDF.
+        convertImage: mammoth.images.imgElement((image) =>
+          image.read("base64").then((b64) => ({ src: `data:${image.contentType};base64,${b64}` }))),
+      });
+      return renderHtmlPdf(sanitize(res.value), T.baseName(file.name), pdfOptions("wp"));
+    }
+
+    async function run(files) {
+      await guarded(status, [zipBtn], async () => {
+        results = [];
+        for (let i = 0; i < files.length; i++) {
+          T.setStatus(status, `Converting ${i + 1} of ${files.length}: ${files[i].name}`, "busy");
+          try {
+            results.push(await convert(files[i]));
+          } catch (err) {
+            console.error(err);
+            results.push({ error: msg(err), source: files[i].name });
+          }
+        }
+        renderBatch(batchEl, results, "application/pdf");
+        const ok = results.filter((r) => !r.error).length;
+        zipBtn.disabled = ok < 2;
+        T.setStatus(status, `Converted ${ok} of ${files.length} file${files.length === 1 ? "" : "s"}.`, ok === files.length ? "ok" : "error");
+      });
+      zipBtn.disabled = results.filter((r) => !r.error).length < 2;
+    }
+
+    zipBtn.addEventListener("click", () => downloadZip(results, "word-pdfs.zip"));
+    T.mountDropZone($("wp-drop"), {
+      accept: ".docx",
+      multiple: true,
+      onReject: (m) => T.setStatus(status, m, "error"),
+      onFiles: run,
+    });
+    return { run };
+  })();
+
+  // ---------- 9. HTML to PDF ----------
+
+  /** Sanitize untrusted HTML for the PDF stage: no scripts, handlers, styles or remote resources. */
+  function htmlForPdf(html) {
+    const clean = DOMPurify.sanitize(String(html), {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["style", "link", "meta", "base"],
+      FORBID_ATTR: ["srcset"],
+    });
+    const tpl = document.createElement("template");
+    tpl.innerHTML = clean;
+    const local = /^\s*(data:|blob:)/i;
+    tpl.content.querySelectorAll("img, source, video, audio, image").forEach((n) => {
+      const src = n.getAttribute("src") || n.getAttribute("href") || "";
+      if (!local.test(src)) n.remove();
+    });
+    tpl.content.querySelectorAll("[style]").forEach((n) => {
+      if (/url\s*\(|@import|expression/i.test(n.getAttribute("style"))) n.removeAttribute("style");
+    });
+    const holder = document.createElement("div");
+    holder.appendChild(tpl.content);
+    return holder.innerHTML;
+  }
+
+  mountMarkdownTab({
+    prefix: "hp",
+    noun: "HTML",
+    accept: ".html,.htm,.txt",
+    mime: "application/pdf",
+    zipName: "html-pdfs.zip",
+    preview: htmlForPdf,
+    convert: (html, name) => renderHtmlPdf(htmlForPdf(html), name, pdfOptions("hp")),
+  });
 
   T.mountTabs($("tabs"));
 })();

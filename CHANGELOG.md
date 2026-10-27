@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.3.0] - 2026-10-27
+
+### Added
+
+- Word to PDF: .docx to PDF, images kept, batch with zip download
+- HTML to PDF: sanitised (scripts, handlers and remote resources removed) before rendering
+- Searchable PDF: OCR scanned PDFs or images into a PDF with an invisible, selectable and searchable text layer (English)
+- Markdown, Word and HTML to PDF now share one PDF rendering pipeline
+
 ## [2.2.0] - 2026-10-27
 
 ### Added

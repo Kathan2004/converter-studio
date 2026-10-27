@@ -290,6 +290,12 @@
     type: '<path d="M4 18l4.5-12L13 18"/><path d="M5.7 14h5.6"/><path d="M15 12.5c.8-.8 1.8-1 2.7-1 1.5 0 2.3.9 2.3 2.3V18"/><path d="M20 15.3c-2.6 0-4.6.5-4.6 1.7 0 .8.6 1.2 1.6 1.2 1.6 0 3-1.2 3-2.9"/>',
     zip: '<rect x="4" y="8" width="16" height="12" rx="1.5"/><path d="M3 4h18v4H3z"/><path d="M10 12h4"/>',
     unzip: '<rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M12 3v9"/><path d="M8.5 6.5L12 3l3.5 3.5"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+    unlock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 017.5-2"/>',
+    pen: '<path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    wrench: '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/>',
+    key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9"/><path d="M17 6l3 3"/><path d="M15 8l2 2"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h3v3"/>',
     hash: '<path d="M9 3L7 21"/><path d="M17 3l-2 18"/><path d="M4 8.5h17"/><path d="M3 15.5h17"/>',
   };
   /** A tool's icon as a tinted rounded square (static catalog markup only). */

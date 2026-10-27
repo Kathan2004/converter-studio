@@ -1,6 +1,6 @@
 {
   "name": "md-pdf-serverless",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "description": "Converter Studio: browser-only converters and compressors for Markdown, data, documents, images and PDF, plus a serverless Markdown renderer",
   "type": "commonjs",

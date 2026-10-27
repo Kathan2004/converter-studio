@@ -19,6 +19,7 @@
     .md-render th, .md-render td { border: 1px solid #d0d7de; padding: 4px 10px; white-space: normal; text-align: left; position: static; }
     .md-render th { background: #f6f8fa; }
     .md-render img { max-width: 100%; }
+    .md-render .hint { color: #57606a; }
     .md-render hr { border: 0; border-top: 1px solid #d8dee4; }
     .pdf-stage { position: fixed; left: -99999px; top: 0; max-height: none; overflow: visible; }
     .panel h2 { margin: 0 0 4px; font-size: 1.2rem; }
@@ -42,7 +43,7 @@
   </nav>
   <main class="tool-app">
     <header class="tool-hero"><h1>Document Converters</h1><p>Markdown, Word, HTML and PDF text conversions plus text utilities. Everything runs locally in your browser.</p></header>
-    <div class="tool-tabs" id="tabs"><button data-tab="md-to-pdf">Markdown to PDF</button><button data-tab="md-to-docx">Markdown to Word</button><button data-tab="md-to-html">Markdown to HTML</button><button data-tab="docx-to">Word to Markdown</button><button data-tab="html-to-md">HTML to Markdown</button><button data-tab="pdf-to-text">PDF to Text</button><button data-tab="text-tools">Text tools</button></div>
+    <div class="tool-tabs" id="tabs"><button data-tab="md-to-pdf">Markdown to PDF</button><button data-tab="md-to-docx">Markdown to Word</button><button data-tab="md-to-html">Markdown to HTML</button><button data-tab="docx-to">Word to Markdown</button><button data-tab="html-to-md">HTML to Markdown</button><button data-tab="pdf-to-text">PDF to Text</button><button data-tab="word-to-pdf">Word to PDF</button><button data-tab="html-to-pdf">HTML to PDF</button><button data-tab="ocr-pdf">Searchable PDF</button><button data-tab="text-tools">Text tools</button></div>
 
     <section class="panel" data-panel="md-to-pdf">
       <h2>Markdown to PDF</h2>
@@ -122,6 +123,38 @@
       <p class="status" id="pt-status" role="status" aria-live="polite"></p>
     </section>
 
+    <section class="panel" data-panel="word-to-pdf">
+      <h2>Word to PDF</h2>
+      <div class="drop-zone" id="wp-drop"><p class="drop-title">Drop Word files</p></div>
+      <div class="controls"><div class="field"><label for="wp-size">Page size</label><select id="wp-size"><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="field"><label for="wp-orient">Orientation</label><select id="wp-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div><div class="field"><label for="wp-margin">Margin</label><select id="wp-margin"><option value="10">10 mm</option><option value="15" selected>15 mm</option><option value="20">20 mm</option><option value="25">25 mm</option></select></div><label class="check"><input type="checkbox" id="wp-numbers" checked /> Page numbers</label></div>
+      <ul class="file-list" id="wp-batch"></ul>
+      <div class="btn-row"><button class="ghost" id="wp-zip" type="button" disabled>Download all (.zip)</button></div>
+      <p class="status" id="wp-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="html-to-pdf">
+      <h2>HTML to PDF</h2>
+      <div class="drop-zone" id="hp-drop"><p class="drop-title">Drop HTML files</p></div>
+      <div class="split">
+        <div class="field"><label for="hp-input">HTML</label><textarea id="hp-input" rows="12" spellcheck="false" placeholder="Or paste HTML here"></textarea></div>
+        <div class="field"><span class="label">Preview</span><div class="preview md-render" id="hp-preview" aria-live="polite"></div></div>
+      </div>
+      <div class="controls"><div class="field"><label for="hp-size">Page size</label><select id="hp-size"><option value="a4">A4</option><option value="letter">Letter</option></select></div><div class="field"><label for="hp-orient">Orientation</label><select id="hp-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div><div class="field"><label for="hp-margin">Margin</label><select id="hp-margin"><option value="10">10 mm</option><option value="15" selected>15 mm</option><option value="20">20 mm</option><option value="25">25 mm</option></select></div><label class="check"><input type="checkbox" id="hp-numbers" checked /> Page numbers</label></div>
+      <div class="btn-row"><button class="primary" id="hp-run" type="button">Download PDF</button><button class="ghost" id="hp-zip" type="button" disabled>Download all (.zip)</button></div>
+      <ul class="file-list" id="hp-batch"></ul>
+      <p class="status" id="hp-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" data-panel="ocr-pdf">
+      <h2>Searchable PDF</h2>
+      <div class="drop-zone" id="op-drop"><p class="drop-title">Drop a scanned PDF or images</p></div>
+      <div class="controls"><div class="field"><label for="op-pages">Pages (optional)</label><input type="text" id="op-pages" placeholder="All, or 1-3,5" autocomplete="off" /></div></div>
+      <progress id="op-bar" max="1" value="0" aria-label="OCR progress"></progress>
+      <ul class="file-list" id="op-batch"></ul>
+      <div class="btn-row"><button class="ghost" id="op-zip" type="button" disabled>Download all (.zip)</button></div>
+      <p class="status" id="op-status" role="status" aria-live="polite"></p>
+    </section>
+
     <section class="panel" data-panel="text-tools">
       <h2>Text tools</h2>
       <p class="hint">Counts, case conversion, line cleanup and encoders. Everything is computed locally.</p>
@@ -150,5 +183,7 @@
   <script src="vendor/turndown.js"></script>
   <script src="js/documents-core.js"></script>
   <script src="js/documents.js"></script>
+  <script src="js/ocr-pdf-core.js"></script>
+  <script src="js/ocr-pdf.js"></script>
 </body>
 </html>
