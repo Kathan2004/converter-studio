@@ -17,6 +17,30 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    # Prefetch every page and prerender the one you hover or start to tap, so navigation is near-instant.
+    Speculation-Rules = "\"/speculation-rules.json\""
+
+[[headers]]
+  for = "/speculation-rules.json"
+  [headers.values]
+    Content-Type = "application/speculationrules+json"
+
+# Libraries change only with a deliberate upgrade: cache for a week.
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+# Site code: serve instantly from cache and refresh in the background.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300, stale-while-revalidate=86400"
 
 [[headers]]
   for = "/.netlify/functions/*"

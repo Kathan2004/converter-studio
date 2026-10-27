@@ -370,7 +370,9 @@
     const x = r.left + r.width / 2;
     const y = r.top + r.height / 2;
     const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    root.classList.add("theme-switching");
     const transition = document.startViewTransition(swap);
+    transition.finished.finally(() => root.classList.remove("theme-switching"));
     transition.ready.then(() => {
       root.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
@@ -603,7 +605,13 @@
   buildToolLayout();
   buildPalette();
   if (document.querySelector("[data-panel]")) mountPageDrop();
-  window.addEventListener("load", () => { setTimeout(consumeHandoff, 0); });
+  // A prerendered page (Speculation Rules) runs before it is shown: wait until it is activated,
+  // so a file picked on the home page after prerendering started is still picked up.
+  function whenVisible(fn) {
+    if (document.prerendering) document.addEventListener("prerenderingchange", fn, { once: true });
+    else fn();
+  }
+  window.addEventListener("load", () => { whenVisible(() => setTimeout(consumeHandoff, 0)); });
 
   window.Tools = Object.freeze({
     handoff: Object.freeze({ save: handoffSave }),

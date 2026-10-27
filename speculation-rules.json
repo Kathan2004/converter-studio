@@ -1,0 +1,8 @@
+{
+  "prefetch": [
+    { "where": { "href_matches": "/*.html" }, "eagerness": "eager" }
+  ],
+  "prerender": [
+    { "where": { "href_matches": "/*.html" }, "eagerness": "moderate" }
+  ]
+}

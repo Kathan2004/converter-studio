@@ -593,9 +593,17 @@ body[data-tint="gray"] { --glow-1: rgba(142, 142, 147, 0.26); --glow-2: rgba(100
   .site-nav-inner, .palette, .drop-orb, .page-drop div { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 /* Theme switch: the circular reveal is driven from shared.js; the browser's default cross-fade is turned off. */
-::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
+.theme-switching::view-transition-old(root), .theme-switching::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.theme-switching::view-transition-old(root) { z-index: 1; }
+.theme-switching::view-transition-new(root) { z-index: 2; }
+
+/* Page-to-page navigation: a quick cross-fade; the menu capsule stays in place. */
+@view-transition { navigation: auto; }
+.site-nav-inner { view-transition-name: site-nav; }
+::view-transition-old(root) { animation: 160ms ease-out both vt-fade-out; }
+::view-transition-new(root) { animation: 220ms ease-out both vt-fade-in; }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; transform: translateY(6px); } }
 /* Fallback when View Transitions are unavailable or motion is reduced: a short colour cross-fade. */
 .theme-fading, .theme-fading *, .theme-fading *::before, .theme-fading *::after {
   transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, fill 0.4s ease, box-shadow 0.4s ease !important;
