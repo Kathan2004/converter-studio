@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Files - Converter Studio</title>
+  <meta name="description" content="Compress files and folders to ZIP, extract ZIP archives, gzip and gunzip, and compute SHA-256, SHA-1, SHA-512 and MD5 hashes. Runs entirely in your browser." />
+  <link rel="stylesheet" href="assets/shared.css" />
+  <style>
+    .stat-row { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--mono); font-size: 0.85rem; color: var(--ink); }
+    .stat-row b { color: var(--amber); font-weight: 500; }
+    .table-wrap { overflow: auto; max-height: 360px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); }
+    .table-wrap table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+    .table-wrap th, .table-wrap td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .table-wrap td.wrap { white-space: normal; word-break: break-all; min-width: 160px; }
+    .table-wrap th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-weight: 600; }
+    .table-wrap td.num, .table-wrap th.num { text-align: right; font-family: var(--mono); }
+    .name-btn { all: unset; cursor: pointer; color: var(--accent); word-break: break-all; }
+    .name-btn:hover { text-decoration: underline; }
+    .name-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    tr.is-active td { background: var(--surface); }
+    .pv { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 10px; display: grid; gap: 8px; min-width: 0; }
+    .pv pre { margin: 0; max-height: 280px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 0.8rem; color: var(--ink); }
+    .pv img { max-width: 100%; max-height: 280px; object-fit: contain; justify-self: start; }
+    .hash-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 10px; display: grid; gap: 6px; min-width: 0; }
+    .hash-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+    .hash-head .hn { font-weight: 600; word-break: break-all; }
+    .hash-head .hm { color: var(--muted); font-family: var(--mono); font-size: 0.8rem; }
+    .hash-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; border: 1px solid transparent; border-radius: 6px; padding: 3px 6px; }
+    .hash-row .al { color: var(--amber); font-family: var(--mono); font-size: 0.78rem; }
+    .hash-row code { font-family: var(--mono); font-size: 0.78rem; word-break: break-all; color: var(--ink); }
+    .hash-row .tag { font-family: var(--mono); font-size: 0.72rem; }
+    .hash-row.is-match { border-color: var(--ok); }
+    .hash-row.is-match code, .hash-row.is-match .tag { color: var(--ok); }
+    .hash-row.is-miss { border-color: var(--danger); }
+    .hash-row.is-miss code, .hash-row.is-miss .tag { color: var(--danger); }
+    .hash-row button { padding: 4px 9px; font-size: 0.78rem; }
+    .inline-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .field input[type="text"].wide { width: 100%; font-family: var(--mono); }
+    @media (max-width: 560px) {
+      .hash-row { grid-template-columns: minmax(0, 1fr) auto; }
+      .hash-row .al { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner">
+      <a class="site-brand" href="index.html">Converter Studio</a>
+      <div class="site-links">
+        <a href="index.html">Markdown</a>
+        <a href="data.html">Data</a>
+        <a href="documents.html">Documents</a>
+        <a href="images.html">Images</a>
+        <a href="pdf.html">PDF</a>
+        <a href="files.html" aria-current="page">Files</a>
+      </div>
+      <span class="site-privacy">Files never leave your device</span>
+    </div>
+  </nav>
+  <main class="tool-app">
+    <header class="tool-hero">
+      <h1>Files</h1>
+      <p>Compress files and folders to ZIP, extract archives, gzip and gunzip, and verify checksums. Everything runs locally in your browser.</p>
+    </header>
+    <div class="tool-tabs" id="tabs">
+      <button data-tab="zip">Compress to ZIP</button>
+      <button data-tab="unzip">Extract ZIP</button>
+      <button data-tab="gzip">Gzip</button>
+      <button data-tab="hash">File hash</button>
+    </div>
+
+    <!-- 1. Compress to ZIP -->
+    <section class="panel" data-panel="zip">
+      <h2>Compress files to ZIP</h2>
+      <div class="drop-zone" id="zip-drop">
+        <p class="drop-title">Drop files or whole folders here, or click to choose files</p>
+        <p class="drop-subtitle">Folders keep their structure. Add as many as you like.</p>
+      </div>
+      <div class="btn-row">
+        <button class="ghost" id="zip-pick-files" type="button">Choose files</button>
+        <button class="ghost" id="zip-pick-folder" type="button">Choose folder</button>
+        <button class="ghost" id="zip-clear" type="button">Clear all</button>
+      </div>
+      <div class="stat-row" id="zip-total" aria-live="polite"></div>
+      <ul class="file-list" id="zip-list"></ul>
+      <div class="controls">
+        <div class="field">
+          <label for="zip-level">Compression</label>
+          <select id="zip-level">
+            <option value="0">Store (no compression)</option>
+            <option value="1">1 - fastest</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" selected>6 - default</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9 - smallest</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="zip-name">Archive name</label>
+          <input type="text" id="zip-name" value="archive" autocomplete="off" spellcheck="false" />
+        </div>
+        <label class="check"><input type="checkbox" id="zip-skip" checked /> Skip recompressing already-compressed files (JPG, PNG, MP4, PDF, DOCX, ZIP and similar)</label>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="zip-run" type="button">Create ZIP</button>
+        <button class="ghost is-hidden" id="zip-download" type="button">Download ZIP</button>
+      </div>
+      <div class="status" id="zip-status" role="status" aria-live="polite"></div>
+      <div class="stat-row" id="zip-summary"></div>
+      <div class="table-wrap is-hidden" id="zip-result"></div>
+    </section>
+
+    <!-- 2. Extract ZIP -->
+    <section class="panel" data-panel="unzip">
+      <h2>Extract ZIP</h2>
+      <div class="drop-zone" id="unzip-drop">
+        <p class="drop-title">Drop a .zip file here, or click to choose</p>
+        <p class="drop-subtitle">Browse the contents and download only what you need.</p>
+      </div>
+      <div class="stat-row" id="unzip-info"></div>
+      <div class="controls">
+        <div class="field">
+          <label for="unzip-filter">Filter</label>
+          <input type="text" id="unzip-filter" placeholder="Part of a file name or path" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="btn-row">
+          <button class="ghost" id="unzip-all" type="button">Select all</button>
+          <button class="ghost" id="unzip-none" type="button">Select none</button>
+        </div>
+      </div>
+      <div class="table-wrap is-hidden" id="unzip-table"></div>
+      <div class="pv is-hidden" id="unzip-preview" aria-live="polite"></div>
+      <div class="controls">
+        <label class="check"><input type="checkbox" id="unzip-separate" /> Download as separate files (instead of one ZIP)</label>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="unzip-run" type="button" disabled>Download selected</button>
+      </div>
+      <div class="status" id="unzip-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- 3. Gzip -->
+    <section class="panel" data-panel="gzip">
+      <h2>Gzip and gunzip</h2>
+      <div class="drop-zone" id="gzip-drop">
+        <p class="drop-title">Drop a file here, or click to choose</p>
+        <p class="drop-subtitle">A .gz file is offered for decompression, anything else for compression.</p>
+      </div>
+      <div class="stat-row" id="gzip-info"></div>
+      <div class="controls">
+        <div class="field">
+          <label for="gzip-mode">Action</label>
+          <select id="gzip-mode">
+            <option value="compress">Compress (gzip)</option>
+            <option value="decompress">Decompress (gunzip)</option>
+          </select>
+        </div>
+        <div class="field" id="gzip-level-field">
+          <label for="gzip-level">Level</label>
+          <select id="gzip-level">
+            <option value="1">1 - fastest</option>
+            <option value="3">3</option>
+            <option value="6" selected>6 - default</option>
+            <option value="9">9 - smallest</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="primary" id="gzip-run" type="button" disabled>Run</button>
+        <button class="ghost is-hidden" id="gzip-download" type="button">Download</button>
+      </div>
+      <div class="status" id="gzip-status" role="status" aria-live="polite"></div>
+      <div class="stat-row" id="gzip-summary"></div>
+    </section>
+
+    <!-- 4. File hash -->
+    <section class="panel" data-panel="hash">
+      <h2>File hash</h2>
+      <div class="drop-zone" id="hash-drop">
+        <p class="drop-title">Drop files here, or click to choose</p>
+        <p class="drop-subtitle">MD5, SHA-1, SHA-256 and SHA-512. Dropping again replaces the results.</p>
+      </div>
+      <div class="field">
+        <label for="hash-expected">Expected hash (optional)</label>
+        <input type="text" class="wide" id="hash-expected" placeholder="Paste a checksum to highlight matches" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="btn-row">
+        <button class="ghost" id="hash-clear" type="button">Clear</button>
+      </div>
+      <div class="status" id="hash-status" role="status" aria-live="polite"></div>
+      <div id="hash-results" class="file-list"></div>
+    </section>
+  </main>
+  <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
+  <script src="assets/catalog.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="js/files-core.js"></script>
+  <script src="js/files.js"></script>
+</body>
+</html>

@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Image Tools - Converter Studio</title>
   <meta name="description" content="Compress, convert, resize, crop, rotate, strip metadata from and Base64-encode images in your browser. Nothing is uploaded." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/shared.css" />
   <style>
     .file-item { flex-wrap: wrap; }
@@ -41,6 +38,7 @@
       <button data-tab="convert">Convert</button>
       <button data-tab="resize">Resize</button>
       <button data-tab="transform">Crop &amp; rotate</button>
+      <button data-tab="ocr">Image to text</button>
       <button data-tab="metadata">Strip metadata</button>
       <button data-tab="base64">Image to Base64</button>
     </div>
@@ -149,6 +147,50 @@
       <ul class="file-list" data-role="list"></ul>
     </section>
 
+    <section class="panel is-hidden" data-panel="ocr">
+      <h2>Image to text (OCR)</h2>
+      <style>
+        .ocr-stage { position: relative; overflow: hidden; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); }
+        .ocr-stage img, .ocr-stage canvas { display: block; max-width: 100%; max-height: 320px; margin: 0 auto; }
+        .ocr-stage.is-scanning::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--accent); box-shadow: 0 0 14px 3px var(--accent); animation: ocr-scan 1.6s ease-in-out infinite alternate; }
+        @keyframes ocr-scan { from { top: 0; } to { top: calc(100% - 3px); } }
+        @media (prefers-reduced-motion: reduce) { .ocr-stage.is-scanning::after { animation: none; top: 50%; } }
+        .ocr-paste { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 110px; padding: 16px; border: 2px dashed var(--line); border-radius: var(--radius); background: var(--surface-2); color: var(--muted); font-size: 1.05rem; cursor: text; }
+        .ocr-paste:focus, .ocr-paste.is-flash { outline: none; border-color: var(--accent); color: var(--ink); }
+        .ocr-bar { height: 8px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+        .ocr-bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.15s linear; }
+        #ocr-output { min-height: 340px; font-family: var(--mono); font-size: 0.9rem; }
+        .ocr-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; font-size: 0.85rem; color: var(--muted); }
+        #ocr-copy { font-size: 1.05rem; padding: 12px 22px; }
+      </style>
+      <div class="split">
+        <div>
+          <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images or a scanned PDF here, or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, PDF. Several files are read one after another.</p></div>
+          <div class="ocr-paste" id="ocr-paste" tabindex="0" role="note" aria-label="Paste target for screenshots">Press Ctrl+V to paste a screenshot</div>
+          <div class="ocr-stage" id="ocr-stage" aria-live="polite"><p class="hint" style="padding:16px;margin:0">The image being read appears here.</p></div>
+          <div class="ocr-bar" aria-hidden="true"><span id="ocr-bar"></span></div>
+          <p class="status" id="ocr-status" role="status" aria-live="polite"></p>
+          <div class="controls">
+            <label class="check"><input id="ocr-separate" type="checkbox" checked /> Separate results by file</label>
+            <label class="check"><input id="ocr-hyphen" type="checkbox" checked /> Fix hyphenated line breaks</label>
+            <label class="check"><input id="ocr-lines" type="checkbox" checked /> Keep line breaks</label>
+            <label class="check"><input id="ocr-enhance" type="checkbox" checked /> Grayscale and enhance contrast</label>
+            <div class="field"><label for="ocr-pages">PDF pages (optional)</label><input id="ocr-pages" type="text" placeholder="all, or e.g. 1-3,5" autocomplete="off" /></div>
+          </div>
+          <p class="opt-note">English model is bundled; other languages are not installed. Small screenshots are enlarged automatically for better accuracy. Nothing is uploaded.</p>
+        </div>
+        <div>
+          <div class="field"><label for="ocr-output">Extracted text (editable)</label><textarea id="ocr-output" spellcheck="false" placeholder="Recognized text appears here."></textarea></div>
+          <p class="ocr-stats" aria-live="polite"><span id="ocr-conf">Confidence: n/a</span><span id="ocr-chars">0 characters</span><span id="ocr-words">0 words</span></p>
+          <div class="btn-row">
+            <button type="button" class="primary" id="ocr-copy" disabled>Copy text</button>
+            <button type="button" class="ghost" id="ocr-save" disabled>Download .txt</button>
+            <button type="button" class="ghost" id="ocr-clear" disabled>Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="panel is-hidden" data-panel="metadata">
       <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images here or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, SVG, ICO. Many files at once.</p></div>
       <div class="controls">
@@ -181,9 +223,12 @@
       <div class="preview" id="b-preview"><p class="hint">Decoded image appears here.</p></div>
     </section>
   </main>
-  <footer class="site-footer">made by kathan somani.</footer>
+  <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
+  <script src="assets/catalog.js"></script>
   <script src="assets/shared.js"></script>
   <script src="js/images-core.js"></script>
   <script src="js/images.js"></script>
+  <script src="js/ocr-core.js"></script>
+  <script src="js/ocr.js"></script>
 </body>
 </html>

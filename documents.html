@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Document Converters - Converter Studio</title>
   <meta name="description" content="Convert Markdown to PDF, Word and HTML, Word and HTML to Markdown, extract text from PDFs, and use text utilities. Everything runs in your browser." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/shared.css" />
   <style>
     .md-render { font: 14px/1.6 Arial, Helvetica, sans-serif; color: #1f2328; background: #fff; overflow: auto; max-height: 420px; white-space: normal; }
     .md-render h1, .md-render h2 { border-bottom: 1px solid #d8dee4; padding-bottom: .25em; }
     .md-render h1, .md-render h2, .md-render h3, .md-render h4 { margin: 1em 0 .5em; line-height: 1.25; }
     .md-render pre { background: #f3f4f6; padding: .7em; border-radius: 6px; overflow: auto; }
-    .md-render code { font-family: "IBM Plex Mono", Menlo, Consolas, monospace; font-size: .9em; background: #f3f4f6; padding: .1em .3em; border-radius: 3px; }
+    .md-render code { font-family: var(--mono); font-size: .9em; background: #f3f4f6; padding: .1em .3em; border-radius: 3px; }
     .md-render pre code { background: none; padding: 0; }
     .md-render blockquote { margin: .8em 0; padding: .1em 1em; border-left: 4px solid #d0d7de; color: #57606a; }
     .md-render table { border-collapse: collapse; margin: .8em 0; }
@@ -144,7 +141,8 @@
       <p class="status" id="tt-status" role="status" aria-live="polite"></p>
     </section>
   </main>
-  <footer class="site-footer">made by kathan somani.</footer>
+  <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
+  <script src="assets/catalog.js"></script>
   <script src="assets/shared.js"></script>
   <script src="vendor/marked.min.js"></script>
   <script src="vendor/purify.min.js"></script>

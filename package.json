@@ -1,13 +1,13 @@
 {
   "name": "md-pdf-serverless",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "Converter Studio: browser-only converters and compressors for Markdown, data, documents, images and PDF, plus a serverless Markdown renderer",
   "type": "commonjs",
   "scripts": {
     "dev": "netlify dev",
     "build": "echo 'No build step required'",
-    "test": "node --test test/*.test.js"
+    "test": "node --test --test-concurrency=1 test/*.test.js"
   },
   "dependencies": {
     "@sparticuz/chromium": "^138.0.2",

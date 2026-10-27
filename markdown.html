@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markdown to JSON or Excel - Converter Studio</title>
+  <meta name="description" content="Batch-convert Markdown files into normalized JSON or Excel rows and tables for AI ingestion. Runs locally in your browser." />
+  <link rel="stylesheet" href="assets/shared.css" />
+  <style>
+    #multiFileList li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font-size: 0.9rem; }
+    #multiFileList li span { color: var(--muted); font-family: var(--mono); font-size: 0.78rem; }
+    #multiFileList li.empty { color: var(--muted); }
+    #multiFileList { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    #jsonPreview { min-height: 160px; }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Tools">
+    <div class="site-nav-inner"><a class="site-brand" href="index.html">Converter Studio</a></div>
+  </nav>
+  <main class="tool-app">
+    <div class="tool-tabs" id="tabs">
+      <button data-tab="pipeline">Markdown to JSON or Excel</button>
+    </div>
+
+    <section class="panel" data-panel="pipeline">
+      <h2>Markdown to JSON or Excel</h2>
+      <p class="hint">Load several Markdown files. Each is split into heading, paragraph, list and table rows, and exported as one normalized JSON document or an Excel sheet, ready for AI ingestion.</p>
+      <div id="multiDropZone" class="drop-zone">
+        <p class="drop-title">Drop Markdown files here, or click to choose</p>
+        <p class="drop-subtitle">.md, .markdown or .txt. Add as many as you like.</p>
+      </div>
+      <input id="multiFileInput" class="hidden-file-input" type="file" accept=".md,.markdown,.txt" multiple data-handoff />
+      <div class="btn-row">
+        <button id="pickMultiBtn" type="button" class="ghost">Choose files</button>
+        <button id="clearMultiBtn" type="button" class="ghost">Clear files</button>
+        <button id="downloadJsonBtn" type="button" class="primary">Download JSON</button>
+        <button id="downloadExcelBtn" type="button" class="primary">Download Excel</button>
+      </div>
+      <span id="pipelineStatus" class="status" role="status" aria-live="polite"></span>
+      <div class="split">
+        <div class="field">
+          <h3>Files</h3>
+          <ul id="multiFileList"></ul>
+        </div>
+        <div class="field">
+          <h3>JSON preview</h3>
+          <pre id="jsonPreview" class="preview">[]</pre>
+        </div>
+      </div>
+      <div class="field">
+        <h3>Excel preview</h3>
+        <div id="excelPreview" class="preview"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
+  <script src="assets/catalog.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="js/pipeline.js"></script>
+</body>
+</html>

@@ -3,145 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Converter Studio - Markdown, Data, Documents, Images, PDF</title>
-  <meta name="description" content="Free browser-based converters and compressors for Markdown, JSON, CSV, Excel, YAML, XML, Word, PDF and images. Files never leave your device." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <title>Converter Studio</title>
+  <meta name="description" content="Convert, compress and extract PDFs, images, data, documents and archives, plus OCR. Everything runs in your browser; nothing is uploaded." />
   <link rel="stylesheet" href="assets/shared.css" />
-  <link rel="stylesheet" href="ui.css" />
 </head>
-<body>
+<body class="home" data-page-drop="off">
+  <div class="glows" aria-hidden="true"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div></div>
+
   <nav class="site-nav" aria-label="Tools">
-    <div class="site-nav-inner">
-      <a class="site-brand" href="index.html">Converter Studio</a>
-      <div class="site-links">
-        <a href="index.html" aria-current="page">Markdown</a>
-        <a href="data.html">Data</a>
-        <a href="documents.html">Documents</a>
-        <a href="images.html">Images</a>
-        <a href="pdf.html">PDF</a>
-      </div>
-      <span class="site-privacy">Files never leave your device</span>
-    </div>
+    <div class="site-nav-inner"><a class="site-brand" href="index.html">Converter Studio</a></div>
   </nav>
-  <div class="bg-shape bg-shape-a" aria-hidden="true"></div>
-  <div class="bg-shape bg-shape-b" aria-hidden="true"></div>
 
-  <main class="app">
-    <header class="hero">
-      <h1>Markdown to HTML Studio</h1>
-      <p class="subtitle">Upload markdown, preview it, and download a clean readable HTML file.</p>
-    </header>
+  <main class="app home-main">
+    <h1 class="home-title">Nothing leaves<br />your device.</h1>
 
-    <section class="panel hub" aria-label="All tools">
-      <h2>All tools</h2>
-      <div class="hub-grid">
-        <a class="hub-card" href="data.html"><strong>Data converters</strong><span>JSON, CSV, TSV, Excel, YAML, XML and Markdown tables in any direction. JSON to formatted Excel, validate, diff.</span></a>
-        <a class="hub-card" href="documents.html"><strong>Document converters</strong><span>Markdown to PDF, Word and HTML. Word to Markdown. PDF to text. Text utilities.</span></a>
-        <a class="hub-card" href="images.html"><strong>Image tools</strong><span>Compress, convert (PNG, JPEG, WebP, AVIF, ICO), resize, crop, rotate and strip EXIF/GPS metadata.</span></a>
-        <a class="hub-card" href="pdf.html"><strong>PDF tools</strong><span>Merge, split, compress, reorder pages, images to PDF, PDF to images, watermark, page numbers, metadata.</span></a>
-      </div>
+    <button type="button" class="drop-orb" id="smartDrop" aria-describedby="dropHelp">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4" /><path d="M7.5 8.5L12 4l4.5 4.5" /><path d="M5 14v4.5A1.5 1.5 0 006.5 20h11a1.5 1.5 0 001.5-1.5V14" /></svg>
+      <span>Drop a file</span>
+    </button>
+    <p id="dropHelp" class="sr-only">Drop a file anywhere, click to choose one, or paste a screenshot to read its text.</p>
+    <input type="file" id="homeFiles" class="hidden-file-input" multiple />
+
+    <section class="suggest is-hidden" id="suggest" aria-live="polite" aria-label="Suggested tools">
+      <p class="suggest-meta" id="suggestMeta"></p>
+      <div class="app-grid" id="suggestChips"></div>
     </section>
 
-    <section class="panel workspace" aria-label="Workspace">
-      <div class="toolbar">
-        <div class="actions-inline">
-          <input id="fileInput" class="hidden-file-input" type="file" accept=".md,.markdown,.txt" />
-          <button id="sampleBtn" type="button" class="ghost">Load Sample</button>
-          <button id="convertBtn" type="button" class="primary">Download HTML</button>
-        </div>
-      </div>
-
-      <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Drop markdown file here">
-        <p class="drop-title">Drag and drop a Markdown file here</p>
-        <p class="drop-subtitle">Or click this area to choose a file</p>
-      </div>
-
-      <div class="meta-row">
-        <div class="meta-item">
-          <label for="title">File name</label>
-          <input id="title" type="text" placeholder="report" value="report" />
-        </div>
-        <div class="meta-item toc-controls" role="group" aria-label="Table of contents settings">
-          <label class="checkbox-label" for="includeToc">
-            <input id="includeToc" type="checkbox" checked />
-            Include Index (TOC)
-          </label>
-          <label class="toc-depth-label" for="tocDepth">Depth</label>
-          <select id="tocDepth" aria-label="TOC depth">
-            <option value="1">H1</option>
-            <option value="2" selected>H1-H2</option>
-            <option value="3">H1-H3</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="split-view">
-        <div class="editor-col">
-          <label for="markdown">Markdown</label>
-          <textarea id="markdown" spellcheck="false" placeholder="# Your heading\n\nPaste markdown here..."></textarea>
-        </div>
-
-        <div id="previewPanel" class="preview-col is-hidden" aria-labelledby="live-preview-heading">
-          <label id="live-preview-heading">Live Preview</label>
-          <div id="previewCanvas" class="preview-canvas" aria-live="polite"></div>
-        </div>
-      </div>
-
-      <div class="convert-row">
-        <span id="status" class="status">Ready</span>
-        <a id="downloadLink" class="download-link hidden" href="#">Download last HTML</a>
-      </div>
-    </section>
-
-    <section class="panel pipeline" aria-label="AI Pipeline Export">
-      <div class="pipeline-head">
-        <h2>Multi Markdown Pipeline</h2>
-        <p>Upload multiple markdown files and export normalized JSON or Excel for AI ingestion.</p>
-      </div>
-
-      <div class="actions-inline">
-        <input id="multiFileInput" class="hidden-file-input" type="file" accept=".md,.markdown,.txt" multiple />
-        <button id="pickMultiBtn" type="button" class="ghost">Choose Multiple .md Files</button>
-        <button id="clearMultiBtn" type="button" class="ghost">Clear Files</button>
-        <button id="downloadJsonBtn" type="button" class="primary">Download JSON</button>
-        <button id="downloadExcelBtn" type="button" class="primary">Download Excel</button>
-      </div>
-
-      <div id="multiDropZone" class="drop-zone" role="button" tabindex="0" aria-label="Drop multiple markdown files here">
-        <p class="drop-title">Drag and drop multiple Markdown files here</p>
-        <p class="drop-subtitle">Or click this area to choose multiple files</p>
-      </div>
-
-      <div class="pipeline-grid">
-        <div class="pipeline-col">
-          <h3>Selected Files</h3>
-          <ul id="multiFileList" class="file-list"></ul>
-        </div>
-        <div class="pipeline-col">
-          <h3>JSON Preview</h3>
-          <pre id="jsonPreview" class="json-preview">[]</pre>
-        </div>
-      </div>
-
-      <div class="pipeline-col">
-        <h3>Excel Preview</h3>
-        <div id="excelPreview" class="excel-preview"></div>
-      </div>
-
-      <div class="convert-row">
-        <span id="pipelineStatus" class="status">No files loaded.</span>
-      </div>
-    </section>
-
-    <footer class="app-footer" aria-label="Footer">
-      made by kathan somani.
-    </footer>
+    <section aria-label="Popular tools" class="app-grid" id="featured"></section>
+    <button type="button" class="all-link" id="showAll" aria-expanded="false" aria-controls="allTools"></button>
+    <div class="all-tools is-hidden" id="allTools"></div>
   </main>
-  <script src="vendor/html2canvas.min.js"></script>
-  <script src="vendor/jspdf.umd.min.js"></script>
-  <script src="vendor/jspdf.plugin.autotable.min.js"></script>
-  <script src="ui.js"></script>
+
+  <footer class="site-footer">Made by Kathan Somani</footer>
+  <script src="assets/catalog.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="js/home.js"></script>
 </body>
 </html>

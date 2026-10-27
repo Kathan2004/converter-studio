@@ -51,11 +51,11 @@ async function open(name) {
   return { page, errors };
 }
 
-for (const name of ["index.html", "data.html", "documents.html", "images.html", "pdf.html"]) {
+for (const name of ["index.html", "data.html", "documents.html", "images.html", "pdf.html", "files.html", "markdown.html"]) {
   test(`${name} loads, every tab opens, no errors`, { skip }, async () => {
     const { page, errors } = await open(name);
     const tabs = await page.$$eval("#tabs button[data-tab]", (b) => b.map((x) => x.dataset.tab));
-    if (name !== "index.html") assert.ok(tabs.length >= 4, `expected tabs on ${name}`);
+    if (name !== "index.html" && name !== "markdown.html") assert.ok(tabs.length >= 4, `expected tabs on ${name}`);
     for (const id of tabs) {
       await page.click(`#tabs button[data-tab="${id}"]`);
       const visible = await page.$eval(`[data-panel="${id}"]`, (el) => !el.classList.contains("is-hidden") && el.offsetParent !== null);

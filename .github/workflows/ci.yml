@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Syntax check
-        run: for f in ui.js assets/*.js js/*.js netlify/functions/*.js; do node --check "$f"; done
+        run: for f in assets/*.js js/*.js netlify/functions/*.js; do node --check "$f"; done
       - run: npm test
         env:
           CHROMIUM_PATH: /usr/bin/google-chrome

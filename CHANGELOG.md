@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.1.0] - 2026-10-27
+
+### Changed
+
+- New minimalist "Glass" interface in the style of Apple's design language: system font, Apple system colours, translucent blurred surfaces with hairline borders, iOS-style grouped tool lists and a Spotlight-style search. Light and dark follow the device setting; motion and transparency respect the reduced-motion and reduced-transparency settings.
+- Navigation rebuilt around one tool catalog: drop a file on the home page to get matching tools, a Spotlight-style `Ctrl K` search on every page, and a sidebar per category
+- Dropping a file anywhere on a tool page loads it into the open tool. Files chosen on the home page open in the picked tool already loaded.
+- The single-file Markdown studio is removed (Documents covers Markdown to HTML, PDF and Word). The batch Markdown to JSON/Excel pipeline moved to `markdown.html`.
+
+### Added
+
+- Image to text (OCR): paste a screenshot, drop images or scanned PDFs, then copy the text. It runs locally with Tesseract and the English model.
+- Files page: ZIP files and whole folders with real deflate (levels 0 to 9, already-compressed formats stored), extract ZIP with preview and selective download, gzip and gunzip, and MD5, SHA-1, SHA-256 and SHA-512 hashes with expected-hash matching
+- End-to-end tests for the home page handoff, search palette, sidebar, Files tools and OCR
+
+### Security
+
+- Zip-bomb limits and entry-name sanitisation for archives
+- CSP allows `'wasm-unsafe-eval'` for the OCR engine only; `eval` remains blocked
+- Google Fonts removed (system fonts only): pages make no third-party requests, and the CSP allows no external origin
+- Google Fonts removed (system fonts only), so pages make no third-party requests at all and the CSP no longer allows any external origin
+
 ## [2.0.0] - 2026-10-27
 
 ### Added
