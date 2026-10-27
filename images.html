@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Image Tools - Converter Studio</title>
   <meta name="description" content="Compress, convert, resize, crop, rotate, strip metadata from and Base64-encode images in your browser. Nothing is uploaded." />
+  <script src="assets/theme.js"></script>
   <link rel="stylesheet" href="assets/shared.css" />
   <style>
     .file-item { flex-wrap: wrap; }
@@ -150,6 +151,8 @@
     <section class="panel is-hidden" data-panel="ocr">
       <h2>Image to text (OCR)</h2>
       <style>
+        #ocr-paste { display: none; } /* paste works anywhere on the page */
+        .ocr-stage:not(:has(img, canvas)) { display: none; }
         .ocr-stage { position: relative; overflow: hidden; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); }
         .ocr-stage img, .ocr-stage canvas { display: block; max-width: 100%; max-height: 320px; margin: 0 auto; }
         .ocr-stage.is-scanning::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--accent); box-shadow: 0 0 14px 3px var(--accent); animation: ocr-scan 1.6s ease-in-out infinite alternate; }
@@ -165,7 +168,7 @@
       </style>
       <div class="split">
         <div>
-          <div class="drop-zone" data-role="drop"><p class="drop-title">Drop images or a scanned PDF here, or click to choose</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, PDF. Several files are read one after another.</p></div>
+          <div class="drop-zone" data-role="drop"><p class="drop-title">Drop, paste or choose an image</p><p class="drop-subtitle">PNG, JPG, WebP, AVIF, GIF, BMP, PDF. Several files are read one after another.</p></div>
           <div class="ocr-paste" id="ocr-paste" tabindex="0" role="note" aria-label="Paste target for screenshots">Press Ctrl+V to paste a screenshot</div>
           <div class="ocr-stage" id="ocr-stage" aria-live="polite"><p class="hint" style="padding:16px;margin:0">The image being read appears here.</p></div>
           <div class="ocr-bar" aria-hidden="true"><span id="ocr-bar"></span></div>

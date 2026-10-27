@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.2.0] - 2026-10-27
+
+### Added
+
+- Theme toggle in the menu bar: System, Light or Dark, remembered on the device and applied before the page paints
+
+### Changed
+
+- Tool pages follow the home page design: centered icon and title, the category's tools as pills, and a soft glow in the category colour
+- Quieter controls: outlined secondary buttons, list-row actions as text links, Apple-style pop-up menus, file icons in lists, category-tinted drop zones, stat tiles for results, a floating page grid in the PDF page editor
+- Less fine print: static notes under tools are hidden; live warnings and results stay
+- Image to text: one drop target that also takes a pasted screenshot
+
+### Fixed
+
+- Tool pages were wider than a phone screen (the tool row stretched the layout) and showed a large empty gap above the title
+
 ## [2.1.0] - 2026-10-27
 
 ### Changed

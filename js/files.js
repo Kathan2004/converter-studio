@@ -40,13 +40,18 @@
     });
   }
 
+  /** Render [label, value] pairs as stat tiles; the first "Result"-style value is highlighted. */
   function statRow(el, parts) {
     el.textContent = "";
-    parts.forEach(([label, value], i) => {
-      if (i) el.append("  /  ");
+    parts.forEach(([label, value]) => {
+      const tile = document.createElement("span");
+      tile.className = `stat${label === "Result" ? " is-key" : ""}`;
       const b = document.createElement("b");
       b.textContent = label;
-      el.append(b, ` ${value}`);
+      const v = document.createElement("span");
+      v.textContent = String(value);
+      tile.append(b, v);
+      el.appendChild(tile);
     });
   }
 

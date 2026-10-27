@@ -154,6 +154,36 @@ describe("site shell", { skip }, () => {
     await page.close();
   });
 
+  test("theme toggle cycles system, light, dark and survives a reload", async () => {
+    const page = await open("pdf.html");
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
+    const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const theme = () => page.evaluate(() => document.documentElement.dataset.theme || "system");
+    assert.equal(await theme(), "system");
+    await page.click("#themeToggle");
+    assert.equal(await theme(), "light");
+    await page.click("#themeToggle");
+    assert.equal(await theme(), "dark");
+    assert.equal(await bg(), "rgb(0, 0, 0)");
+    await page.reload({ waitUntil: "networkidle0" });
+    assert.equal(await theme(), "dark", "choice is remembered");
+    assert.equal(await bg(), "rgb(0, 0, 0)");
+    await page.click("#themeToggle");
+    assert.equal(await theme(), "system");
+    assert.equal(await bg(), "rgb(251, 251, 253)", "back to the device (light) setting");
+    assert.deepEqual(page.errors, []);
+    await page.close();
+  });
+
+  test("tool pages fit a phone screen", async () => {
+    const page = await open("pdf.html#split");
+    await page.setViewport({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "networkidle0" });
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    assert.ok(width <= 390, `page is ${width}px wide on a 390px screen`);
+    await page.close();
+  });
+
   test("markdown pipeline page loads files", async () => {
     const page = await open("markdown.html");
     const input = await page.$("#multiFileInput");

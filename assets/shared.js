@@ -318,7 +318,42 @@
       `<a class="site-brand" href="index.html" aria-label="Converter Studio home">${LOGO_SVG}</a>` +
       `<nav class="site-links" aria-label="Categories">${Cat.CATEGORIES.map((c) =>
         `<a href="${c.page}"${c.page === PAGE ? ' aria-current="page"' : ""}>${escapeHtml(c.name)}</a>`).join("")}</nav>` +
-      `<button type="button" class="site-search" id="openSearch" aria-haspopup="dialog" aria-label="Search tools (Ctrl K)" title="Search (Ctrl K)">${SEARCH_SVG}</button>`;
+      `<button type="button" class="site-search" id="openSearch" aria-haspopup="dialog" aria-label="Search tools (Ctrl K)" title="Search (Ctrl K)">${SEARCH_SVG}</button>` +
+      '<button type="button" class="site-search theme-toggle" id="themeToggle"></button>';
+    mountThemeToggle(document.getElementById("themeToggle"));
+  }
+
+  // ---------- Theme: System -> Light -> Dark, remembered on this device ----------
+  const THEME_KEY = "converter-studio-theme";
+  const THEME_ICONS = {
+    system: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 010 17z" fill="currentColor"/></svg>',
+    light: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    dark: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>',
+  };
+  const THEME_NEXT = { system: "light", light: "dark", dark: "system" };
+  function currentTheme() {
+    const t = document.documentElement.dataset.theme;
+    return t === "light" || t === "dark" ? t : "system";
+  }
+  function applyTheme(theme) {
+    if (theme === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    try {
+      if (theme === "system") localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, theme);
+    } catch (e) { /* storage blocked: the choice lasts for this page only */ }
+  }
+  function mountThemeToggle(btn) {
+    if (!btn) return;
+    const label = { system: "Theme: follows device", light: "Theme: light", dark: "Theme: dark" };
+    const render = () => {
+      const t = currentTheme();
+      btn.innerHTML = THEME_ICONS[t]; // static icon markup
+      btn.setAttribute("aria-label", `${label[t]}. Click to change.`);
+      btn.title = label[t];
+    };
+    btn.addEventListener("click", () => { applyTheme(THEME_NEXT[currentTheme()]); render(); });
+    render();
   }
 
   /** Turn "hero + tab bar + panels" into "sidebar + per-tool header + panel". */
@@ -336,13 +371,17 @@
     const icon = make("span");
     const h1 = make("h1");
     head.append(icon, h1);
-    main.append(head);
+    if (cat) document.body.dataset.tint = cat.tint; // tints the page glow
+    const glows = make("div", "glows glows-tool");
+    glows.setAttribute("aria-hidden", "true");
+    glows.append(make("div", "glow g1"), make("div", "glow g2"));
+    document.body.prepend(glows);
     // The per-tool header replaces the old page hero (one <h1> per page).
     Array.from(app.children).forEach((child) => {
       if (child.classList.contains("tool-hero")) child.remove();
       else main.appendChild(child);
     });
-    layout.append(aside, main);
+    layout.append(head, aside, main);
     app.appendChild(layout);
     // Label tabs from the catalog and order them as the catalog does, so every page reads the same way.
     const rank = (b) => {
