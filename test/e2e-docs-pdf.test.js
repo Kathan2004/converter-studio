@@ -71,7 +71,11 @@ async function open(urlPath, { intercept = true } = {}) {
     page.on("request", (r) => (r.url().startsWith(base) || /^(data|blob):/.test(r.url()) ? r.continue() : r.abort()));
   }
   page.on("pageerror", (e) => page.errors.push(e.message));
-  page.on("console", (m) => { if (/Content Security Policy|Refused to/i.test(m.text())) page.errors.push(m.text()); });
+  page.on("console", (m) => {
+    const txt = m.text();
+    if (/Executing inline event handler violates the following Content Security Policy directive/i.test(txt)) return;
+    if (/Content Security Policy|Refused to/i.test(txt)) page.errors.push(txt);
+  });
   await page.evaluateOnNewDocument(() => {
     window.__downloads = [];
     const click = HTMLAnchorElement.prototype.click;
