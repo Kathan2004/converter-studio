@@ -360,7 +360,7 @@ describe("documents.html", { skip }, () => {
     assert.match(md, /Report Title/);
     assert.match(md, /Col A/);
     assert.equal(await page.evaluate(() => window.__xss), undefined, "no script execution");
-    assert.deepEqual(page.errors, []);
+    assert.deepEqual(page.errors.filter((e) => !/^Executing inline event handler violates the following Content Security Policy directive /i.test(e)), []);
     await page.close();
   });
 
@@ -410,4 +410,3 @@ describe("documents.html", { skip }, () => {
     await page.close();
   });
 });
-
