@@ -92,8 +92,8 @@ after(async () => {
 async function open(tab) {
   const page = await browser.newPage();
   page.errors = [];
-  await page.setRequestInterception(true);
-  page.on("request", (r) => (r.url().startsWith(base) || /^(data|blob):/.test(r.url()) ? r.continue() : r.abort()));
+  // Observe instead of intercepting: interception intermittently stalls requests in headless Chrome.
+  page.on("request", (r) => { if (!r.url().startsWith(base) && !/^(data|blob):/.test(r.url())) page.errors.push(`external request: ${r.url()}`); });
   page.on("pageerror", (e) => page.errors.push(e.message));
   page.on("console", (m) => { if (/Content Security Policy|Refused to/i.test(m.text())) page.errors.push(m.text()); });
   await page.evaluateOnNewDocument(() => {
@@ -126,7 +126,7 @@ async function runTool(page, tab, files, index = 0) {
   const dl = [];
   for (const b of buttons) if ((await b.evaluate((e) => e.textContent)) === "Download") dl.push(b);
   const before = await page.evaluate(() => window.__downloads.length);
-  await dl[index].click();
+  await dl[index].evaluate((e) => e.click());
   await page.waitForFunction((n) => window.__downloads.length > n, {}, before);
   const href = await page.evaluate(() => window.__downloads[window.__downloads.length - 1].href);
   const b64 = await page.evaluate(async (u) => {

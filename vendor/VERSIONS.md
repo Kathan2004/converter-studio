@@ -18,3 +18,11 @@ All conversions run in the browser. These files are copied verbatim from npm and
 | tesseract/core/*.wasm.js | tesseract.js-core (LSTM builds, SIMD and non-SIMD) | 5.1.1 | loaded by the OCR worker |
 | tesseract/lang/eng.traineddata.gz | @tesseract.js-data/eng (4.0.0_best_int) | 1.0.0 | English OCR model |
 | jspdf.umd.min.js, html2canvas.min.js, jspdf.plugin.autotable.min.js | pre-existing | - | `jspdf`, `html2canvas` |
+| qpdf/qpdf.js, qpdf/qpdf.wasm | @neslinesli93/qpdf-wasm (qpdf compiled to WebAssembly) | 0.3.1 | `Module` factory, loaded on demand |
+| zip.min.js | @zip.js/zip.js | 2.23.0 | `zip` |
+| heic2any.min.js | heic2any | 0.0.4 | `heic2any` |
+| qrcode-generator.js | qrcode-generator | 2.0.4 | `qrcode` |
+| jsQR.js | jsqr | 1.4.0 | `jsQR` |
+| signature_pad.umd.min.js | signature_pad | 5.1.4 | `SignaturePad` |
+
+Every file above is byte-identical to the `dist` file of the listed npm release (SHA-256 checked).

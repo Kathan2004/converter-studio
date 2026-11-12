@@ -33,6 +33,13 @@
     .hash-row.is-match code, .hash-row.is-match .tag { color: var(--ok); }
     .hash-row.is-miss { border-color: var(--danger); }
     .hash-row.is-miss code, .hash-row.is-miss .tag { color: var(--danger); }
+    input[type="password"] { font: inherit; font-size: 14px; border: 1px solid transparent; border-radius: 9px; padding: 7px 10px; background: var(--surface-2); color: var(--ink); transition: box-shadow 0.15s var(--ease), border-color 0.15s var(--ease); }
+    input[type="password"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+    .file-item .note { flex-basis: 100%; margin: 0; font-size: 0.82rem; color: var(--muted); }
+    .file-item .note.error { color: var(--danger); }
+    .strength { font-weight: 600; font-size: 0.9rem; min-height: 1.4em; display: block; padding-top: 6px; }
+    .strength[data-level="0"] { color: var(--danger); }
+    .strength[data-level="3"] { color: var(--ok); }
     .hash-row button { padding: 4px 9px; font-size: 0.78rem; }
     .inline-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .field input[type="text"].wide { width: 100%; font-family: var(--mono); }
@@ -67,6 +74,7 @@
       <button data-tab="unzip">Extract ZIP</button>
       <button data-tab="gzip">Gzip</button>
       <button data-tab="hash">File hash</button>
+      <button data-tab="encrypt">Encrypt file</button>
     </div>
 
     <!-- 1. Compress to ZIP -->
@@ -103,6 +111,10 @@
           <label for="zip-name">Archive name</label>
           <input type="text" id="zip-name" value="archive" autocomplete="off" spellcheck="false" />
         </div>
+        <div class="field">
+          <label for="zip-password">Password (optional)</label>
+          <input type="password" id="zip-password" autocomplete="new-password" spellcheck="false" />
+        </div>
         <label class="check"><input type="checkbox" id="zip-skip" checked /> Skip recompressing already-compressed files (JPG, PNG, MP4, PDF, DOCX, ZIP and similar)</label>
       </div>
       <div class="btn-row">
@@ -130,6 +142,12 @@
         <div class="btn-row">
           <button class="ghost" id="unzip-all" type="button">Select all</button>
           <button class="ghost" id="unzip-none" type="button">Select none</button>
+        </div>
+      </div>
+      <div class="controls is-hidden" id="unzip-pw-field">
+        <div class="field">
+          <label for="unzip-password">Password</label>
+          <input type="password" id="unzip-password" autocomplete="off" spellcheck="false" />
         </div>
       </div>
       <div class="table-wrap is-hidden" id="unzip-table"></div>
@@ -185,6 +203,11 @@
         <p class="drop-subtitle">MD5, SHA-1, SHA-256 and SHA-512. Dropping again replaces the results.</p>
       </div>
       <div class="field">
+        <label for="hash-text">Text</label>
+        <textarea id="hash-text" rows="3" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+      <div class="file-list" id="hash-text-results"></div>
+      <div class="field">
         <label for="hash-expected">Expected hash (optional)</label>
         <input type="text" class="wide" id="hash-expected" placeholder="Paste a checksum to highlight matches" autocomplete="off" spellcheck="false" />
       </div>
@@ -194,11 +217,39 @@
       <div class="status" id="hash-status" role="status" aria-live="polite"></div>
       <div id="hash-results" class="file-list"></div>
     </section>
+    <!-- 5. Encrypt file -->
+    <section class="panel is-hidden" data-panel="encrypt">
+      <div class="drop-zone" id="enc-drop"><p class="drop-title">Drop files to encrypt or decrypt</p></div>
+      <div class="controls" id="enc-pw-fields">
+        <div class="field">
+          <label for="enc-password">Password</label>
+          <input type="password" id="enc-password" autocomplete="new-password" spellcheck="false" />
+        </div>
+        <div class="field" id="enc-confirm-field">
+          <label for="enc-confirm">Confirm password</label>
+          <input type="password" id="enc-confirm" autocomplete="new-password" spellcheck="false" />
+        </div>
+        <div class="field">
+          <span class="label">Strength</span>
+          <span class="strength" id="enc-strength" data-level="0" aria-live="polite"></span>
+        </div>
+        <label class="check"><input type="checkbox" id="enc-show" /> Show password</label>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="primary" id="enc-run" disabled>Encrypt</button>
+        <button type="button" class="ghost" id="enc-zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" id="enc-clear" disabled>Clear list</button>
+      </div>
+      <div class="status" id="enc-status" role="status" aria-live="polite"></div>
+      <ul class="file-list" id="enc-list"></ul>
+    </section>
   </main>
   <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
   <script src="assets/catalog.js"></script>
   <script src="assets/shared.js"></script>
   <script src="js/files-core.js"></script>
   <script src="js/files.js"></script>
+  <script src="js/crypto-core.js"></script>
+  <script src="js/encrypt.js"></script>
 </body>
 </html>

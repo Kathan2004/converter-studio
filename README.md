@@ -4,8 +4,8 @@ Browser-based converters and compressors for Markdown, data, documents, images a
 
 ## Version
 
-- Current version: `2.1.0`
-- Release tag: `v2.1.0`
+- Current version: `2.4.0`
+- Release tag: `v2.4.0`
 
 ## How it works
 
@@ -18,11 +18,11 @@ Browser-based converters and compressors for Markdown, data, documents, images a
 
 | Category | Tools |
 |---|---|
-| PDF (`pdf.html`) | Compress (lossless or rasterised), merge PDFs and images, split, edit pages (reorder, rotate, delete), images to PDF, PDF to images, watermark and page numbers, metadata |
-| Images (`images.html`) | Compress (quality or target size), convert (PNG, JPEG, WebP, AVIF, ICO), resize, crop and rotate, **image to text (OCR)**, remove EXIF/GPS metadata, Base64 |
+| PDF (`pdf.html`) | Compress (lossless or rasterised), merge PDFs and images, split, edit pages (reorder, rotate, delete), images to PDF, PDF to images, watermark and page numbers, metadata, **protect** (AES-256 password, print/copy/edit permissions), **unlock** (with the known password), **sign** (draw or type, place on any page), **repair** |
+| Images (`images.html`) | Compress (quality or target size), convert (PNG, JPEG, WebP, AVIF, ICO), resize, crop and rotate, **image to text (OCR)**, remove EXIF/GPS metadata, Base64, **HEIC to JPG/PNG**, **QR code** (make for text, URL, Wi-Fi or email as PNG/SVG; read from an image or pasted screenshot) |
 | Data (`data.html`) | Convert between JSON, CSV, TSV, Excel, YAML, XML and Markdown or HTML tables; JSON to styled Excel report; Excel to JSON or CSV; validate and format; compare JSON |
 | Documents (`documents.html`, `markdown.html`) | Markdown to PDF, Word or HTML; Word to Markdown; HTML to Markdown; PDF to text; text utilities; batch Markdown to JSON or Excel for AI pipelines |
-| Files (`files.html`) | **ZIP files and folders** (real deflate, levels 0 to 9, already-compressed formats stored), **extract ZIP** (browse, preview, pick files), gzip and gunzip, **file hashes** (MD5, SHA-1, SHA-256, SHA-512 with expected-hash check) |
+| Files (`files.html`) | **ZIP files and folders** (real deflate, levels 0 to 9, already-compressed formats stored), **extract ZIP** (browse, preview, pick files), gzip and gunzip, **password ZIP** (AES-256, opens in 7-Zip and WinZip; extract asks for the password), **file and text hashes** (MD5, SHA-1, SHA-256, SHA-512 with expected-hash check), **encrypt file** (AES-256-GCM, key from PBKDF2-SHA-256 with 600,000 iterations; drop the `.enc` file back to decrypt) |
 
 OCR uses Tesseract (WebAssembly) with the English model bundled. It reads pasted screenshots, images and scanned PDFs, page by page.
 
@@ -72,11 +72,12 @@ See [docs/netlify-deploy.md](docs/netlify-deploy.md) for deployment steps and [d
 **Converter pages (client side)**
 
 - **Local processing.** Files are processed in the browser with `File`, canvas, Web Crypto and the vendored libraries. Nothing is uploaded. A file chosen on the home page reaches its tool through the browser's own IndexedDB storage, and is deleted as soon as the tool reads it (or after two minutes).
-- **Scripts.** Pages load scripts only from their own origin. A Content-Security-Policy in `netlify.toml` enforces this. `'wasm-unsafe-eval'` is allowed solely so the OCR engine's WebAssembly can compile; `eval` itself stays blocked.
+- **Scripts.** Pages load scripts only from their own origin. A Content-Security-Policy in `netlify.toml` enforces this. `'wasm-unsafe-eval'` is allowed solely so the OCR engine's and qpdf's WebAssembly can compile; `eval` itself stays blocked.
 - **HTML rendering.** Rendered HTML (Markdown, Word and HTML input) goes through DOMPurify before it is displayed or exported. Data previews are escaped.
 - **CSV and Excel injection.** Cells beginning with `=`, `+`, `-`, `@`, tab or carriage return are prefixed with `'` by default, so exported sheets cannot run formulas.
 - **XML.** XML is parsed with the browser's `DOMParser`, which does not resolve external entities.
-- **Encrypted PDFs.** These are detected and rejected with a clear message. Nothing tries to bypass protection.
+- **Encrypted PDFs.** Protect and Unlock run qpdf (WebAssembly) locally and use AES-256. Unlock needs the correct password; nothing tries to bypass protection. Other PDF tools detect encrypted files and ask you to unlock them first.
+- **File encryption.** Web Crypto only: AES-256-GCM with a random salt and IV, key derived with PBKDF2-SHA-256 (600,000 iterations). A wrong password or a modified file fails authentication instead of producing garbage. Passwords never leave the page and are not stored.
 - **Archives.** Archive entry names are sanitised (no absolute paths or `..`). Archives that would expand past 2 GB, hold more than 20,000 entries, or compress any entry over 1000:1 are refused as likely zip bombs.
 - **Metadata stripping.** EXIF/GPS and PNG text chunks are removed directly from JPEG and PNG bytes, without re-encoding. GPS data is flagged as a privacy warning.
 

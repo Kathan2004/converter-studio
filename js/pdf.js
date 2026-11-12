@@ -36,12 +36,14 @@
   }
 
   // ---------- Shared helpers ----------
-  const ENCRYPTED_MSG = "This PDF is password-protected or encrypted. Remove the protection first; this tool does not bypass it.";
+  const ENCRYPTED_MSG = "This PDF is password-protected. Unlock it first.";
 
   function friendlyError(err, name) {
     const msg = String((err && err.message) || err);
     if ((err && (err.name === "EncryptedPDFError" || err.name === "PasswordException")) || /encrypted|password/i.test(msg)) {
-      return new Error(`${name ? name + ": " : ""}${ENCRYPTED_MSG}`);
+      const e = new Error(`${name ? name + ": " : ""}${ENCRYPTED_MSG}`);
+      e.encrypted = true;
+      return e;
     }
     return new Error(`${name ? name + ": " : ""}${/parse|invalid|header|trailer|xref/i.test(msg) ? "could not read this file as a PDF (" + msg + ")" : msg}`);
   }
@@ -98,6 +100,12 @@
       await fn();
     } catch (e) {
       T.setStatus(statusEl, (e && e.message) || String(e), "error");
+      if (e && e.encrypted) {
+        const a = document.createElement("a");
+        a.href = "pdf.html#unlock";
+        a.textContent = "Open Unlock PDF";
+        statusEl.append(" ", a);
+      }
     } finally {
       // If the task itself re-enabled a button (e.g. a file finished loading), keep that;
       // otherwise restore the state it had before the task started.
@@ -819,6 +827,9 @@
       ["meta-title", "meta-author", "meta-subject", "meta-keywords", "meta-creator", "meta-producer", "meta-created", "meta-modified"].forEach((id) => { $(id).value = ""; });
     }));
   })();
+
+  // Shared with js/pdf-secure.js and js/pdf-sign.js.
+  window.PdfUi = { loadScript, lib, pdfjs, run, pdfZone, canvasToBlob, friendlyError, openRender, renderPageToCanvas };
 
   T.mountTabs($("tabs"));
 })();
