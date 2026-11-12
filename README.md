@@ -4,8 +4,9 @@ Browser-based converters and compressors for Markdown, data, documents, images a
 
 ## Version
 
-- Current version: `2.4.0`
-- Release tag: `v2.4.0`
+- Current version: `2.4.1`
+- Release tag: `v2.4.1`
+- Live site: https://converterstudio.netlify.app/
 
 ## How it works
 
@@ -113,3 +114,7 @@ With `CHROMIUM_PATH` set, the end-to-end tests drive every tool in headless Chro
 ## Author
 
 Made by Kathan Somani
+
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE). Redistributions must keep the credit in [NOTICE](NOTICE). Libraries in `vendor/` keep their own licenses ([vendor/VERSIONS.md](vendor/VERSIONS.md)).

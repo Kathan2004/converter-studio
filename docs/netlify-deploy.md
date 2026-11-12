@@ -1,12 +1,12 @@
-# Netlify Deployment Guide (md-pdf-tool)
+# Netlify Deployment Guide (Converter Studio)
 
 This project is already separated into one folder:
-- [md-pdf-tool](md-pdf-tool)
+- [md-pdf-tool](Converter Studio)
 
 ## Current status
 
 - Netlify login worked.
-- Site was created: https://mdopdff.netlify.app
+- Live site: https://converterstudio.netlify.app
 - CLI deploy upload failed with HTTP 403 due corporate Zscaler network filtering.
 
 This is a network policy issue, not a code issue.
@@ -18,11 +18,11 @@ Use Git-based deploy from Netlify web dashboard so Netlify pulls from Git provid
 ## Step-by-step (GitHub + Netlify)
 
 1. Create a new GitHub repo.
-2. From folder [md-pdf-tool](md-pdf-tool), run:
+2. From folder [md-pdf-tool](Converter Studio), run:
 
 ```powershell
 git add .
-git commit -m "Initial md-pdf-tool"
+git commit -m "Initial Converter Studio"
 git branch -M main
 git remote add origin <YOUR_GITHUB_REPO_URL>
 git push -u origin main
