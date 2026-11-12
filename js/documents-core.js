@@ -502,7 +502,29 @@ hr{border:0;border-top:1px solid #d8dee4;margin:2em 0}
     return blocks(tokens, { quote: 0, level: null });
   }
 
+  /**
+   * Split content of `total` px into page slices no taller than `pageH`, cutting at the last
+   * block boundary (from `breaks`, sorted ascending) that fits; falls back to a hard cut only
+   * when a single block is taller than a page. Returns [[start, end], ...] in px.
+   */
+  function pageSlices(total, pageH, breaks) {
+    const out = [];
+    let y = 0;
+    const bps = (breaks || []).filter((b) => b > 0 && b < total);
+    while (total - y > 0.5) {
+      const limit = y + pageH;
+      if (limit >= total) { out.push([y, total]); break; }
+      let cut = -1;
+      for (const b of bps) { if (b > y + 1 && b <= limit) cut = b; else if (b > limit) break; }
+      if (cut < 0) cut = limit;
+      out.push([y, cut]);
+      y = cut;
+    }
+    return out.length ? out : [[0, Math.max(total, 1)]];
+  }
+
   return {
+    pageSlices,
     slugify, stripInlineMarkdown, extractHeadings, buildToc, buildHtmlDocument, DOC_CSS,
     toUpper, toLower, toTitle, toSentence, toCamel, toPascal, toSnake, toKebab, convertCase, CASE_MODES,
     dedupeLines, sortLines, trimWhitespace, splitLines, countText,
