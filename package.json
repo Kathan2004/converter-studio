@@ -16,7 +16,7 @@
     "puppeteer-core": "^24.16.2"
   },
   "devDependencies": {
-    "netlify-cli": "^17.38.1"
+    "netlify-cli": "^27.17.0"
   },
   "engines": {
     "node": ">=20"
