@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.3.1] - 2026-11-12
+
+### Fixed
+
+- Markdown, Word and HTML to PDF produced blank pages: the document was laid out off-screen, where the renderer captured nothing. It is now rendered in a hidden on-page layer and cut into pages at paragraph, row and heading boundaries, so lines are not split across pages
+
 ## [2.3.0] - 2026-10-27
 
 ### Added
