@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.4.0] - 2026-11-12
+
+### Added
+
+- Protect PDF: AES-256 password, with optional permissions password and print, copy and edit permissions (qpdf, compiled to WebAssembly, runs locally)
+- Unlock PDF: remove a password you know
+- Sign PDF: draw or type a signature and place it on any page
+- Repair PDF: rebuild damaged or malformed files
+- Encrypt file: AES-256-GCM with a PBKDF2-SHA-256 key (600,000 iterations); drop the .enc file back to decrypt it
+- Password ZIP: AES-256 encrypted ZIP files, and password support when extracting
+- Text hash: hash typed or pasted text, not only files
+- HEIC to JPG or PNG, batch with zip download
+- QR code: make QR codes for text, URLs, Wi-Fi and email as PNG or SVG, and read QR codes from images or pasted screenshots
+
+### Security
+
+- All newly vendored libraries are byte-identical to their npm releases (see `vendor/VERSIONS.md`)
+- QR read only offers an Open link for plain http(s) URLs without whitespace
+
 ## [2.3.1] - 2026-11-12
 
 ### Fixed

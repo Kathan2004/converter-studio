@@ -26,6 +26,39 @@
     return fflatePromise;
   }
 
+  let zipjsPromise = null;
+  /** zip.js (AES-256 ZIP encryption/decryption), loaded on first use and run without web workers. */
+  function zipjs() {
+    if (!zipjsPromise) {
+      zipjsPromise = new Promise((resolve, reject) => {
+        const done = () => { window.zip.configure({ useWebWorkers: false }); resolve(window.zip); };
+        if (window.zip) { done(); return; }
+        const s = document.createElement("script");
+        s.src = "vendor/zip.min.js";
+        s.onload = done;
+        s.onerror = () => { zipjsPromise = null; reject(new Error("Could not load the encryption library.")); };
+        document.head.appendChild(s);
+      });
+    }
+    return zipjsPromise;
+  }
+
+  function zipErrorText(e) {
+    const m = errMsg(e);
+    return /password|signature/i.test(m) ? "Incorrect password." : m;
+  }
+
+  /** Create an AES-256 encrypted ZIP; `input` is C.buildZipInput output ({ path: [data, { level, mtime }] }). */
+  async function buildEncryptedZip(input, password) {
+    const z = await zipjs();
+    const writer = new z.ZipWriter(new z.Uint8ArrayWriter(), { password, encryptionStrength: 3, zipCrypto: false });
+    for (const path of Object.keys(input)) {
+      const [data, o] = input[path];
+      await writer.add(path, new z.Uint8ArrayReader(data), { level: o.level, lastModDate: o.mtime });
+    }
+    return writer.close();
+  }
+
   /** Promise wrapper over fflate's async (worker) API, falling back to the sync API if workers fail. */
   function runAsync(asyncFn, syncFn, data, opts) {
     return new Promise((resolve, reject) => {
@@ -202,7 +235,8 @@
         T.setStatus(status, `Compressing ${items.length} file${items.length === 1 ? "" : "s"}...`, "busy");
         await tick();
         const input = C.buildZipInput(loaded, level, skip);
-        const zipped = await runAsync(f.zip, f.zipSync, input, {});
+        const password = $("zip-password").value;
+        const zipped = password ? await buildEncryptedZip(input, password) : await runAsync(f.zip, f.zipSync, input, {});
         const original = loaded.reduce((s, it) => s + it.data.length, 0);
         const seconds = ((performance.now() - started) / 1000).toFixed(1);
         const name = C.zipFileName(nameInput.value);
@@ -210,12 +244,13 @@
         statRow($("zip-summary"), [
           ["Original", fmt(original)], ["ZIP", fmt(zipped.length)],
           ["Result", C.ratioText(original, zipped.length)], ["Time", `${seconds} s`],
+          ...(password ? [["Encryption", "AES-256 encrypted"]] : []),
         ]);
         renderRatios(zipped, input);
         dlBtn.textContent = `Download ${name}`;
         dlBtn.classList.remove("is-hidden");
         T.download(result.blob, name, "application/zip");
-        T.setStatus(status, `Created ${name}.`, "ok");
+        T.setStatus(status, password ? `Created ${name} (AES-256 encrypted).` : `Created ${name}.`, "ok");
       } catch (e) {
         T.setStatus(status, errMsg(e), "error");
       } finally {
@@ -239,7 +274,7 @@
           cell("td", fmt(en.size), "num"),
           cell("td", fmt(en.compressedSize), "num"),
           cell("td", C.ratioText(en.size, en.compressedSize)),
-          cell("td", en.method === 0 ? "stored" : "deflate"),
+          cell("td", en.method === 99 ? "AES-256" : en.method === 0 ? "stored" : "deflate"),
         );
         table.appendChild(tr);
       });
@@ -269,6 +304,8 @@
 
     async function open(file) {
       current = null;
+      $("unzip-password").value = "";
+      $("unzip-pw-field").classList.add("is-hidden");
       tableWrap.classList.add("is-hidden");
       preview.classList.add("is-hidden");
       runBtn.disabled = true;
@@ -284,10 +321,10 @@
         current = { file, bytes, entries };
         const packed = entries.reduce((s, en) => s + en.compressedSize, 0);
         statRow($("unzip-info"), [["Entries", entries.length], ["Packed", fmt(packed)], ["Unpacked", fmt(verdict.totalSize)]]);
+        const anyEnc = entries.some((en) => en.encrypted);
+        $("unzip-pw-field").classList.toggle("is-hidden", !anyEnc);
         render();
-        T.setStatus(status, entries.some((en) => en.encrypted)
-          ? "Some entries are password-protected and cannot be extracted here."
-          : `Ready. Click a name to preview it.`, entries.some((en) => en.encrypted) ? "error" : "ok");
+        T.setStatus(status, anyEnc ? "Password-protected entries: enter the password to extract them." : "Ready. Click a name to preview it.", "ok");
       } catch (e) {
         T.setStatus(status, errMsg(e), "error");
       }
@@ -311,7 +348,6 @@
         const cb = document.createElement("input");
         cb.type = "checkbox";
         cb.checked = en.checked;
-        cb.disabled = en.encrypted;
         cb.setAttribute("aria-label", `Select ${en.safe}`);
         cb.addEventListener("change", () => { en.checked = cb.checked; updateRun(); });
         cbCell.appendChild(cb);
@@ -335,16 +371,41 @@
     }
 
     function updateRun() {
-      const n = current ? current.entries.filter((en) => en.checked && !en.encrypted).length : 0;
+      const n = current ? current.entries.filter((en) => en.checked).length : 0;
       runBtn.disabled = n === 0;
       runBtn.textContent = n ? `Download selected (${n})` : "Download selected";
     }
 
     /** Decompress only the named entries. */
     async function extract(names) {
-      const f = await lib();
-      const wanted = new Set(names);
-      return runAsync(f.unzip, f.unzipSync, current.bytes, { filter: (info) => wanted.has(info.name) });
+      const encrypted = new Set(current.entries.filter((en) => en.encrypted).map((en) => en.name));
+      const plain = new Set(names.filter((n) => !encrypted.has(n)));
+      const secret = new Set(names.filter((n) => encrypted.has(n)));
+      const out = {};
+      if (plain.size) {
+        const f = await lib();
+        Object.assign(out, await runAsync(f.unzip, f.unzipSync, current.bytes, { filter: (info) => plain.has(info.name) }));
+      }
+      if (secret.size) Object.assign(out, await extractEncrypted(secret));
+      return out;
+    }
+
+    async function extractEncrypted(wanted) {
+      const password = $("unzip-password").value;
+      if (!password) throw new Error("Enter the password to extract encrypted entries.");
+      const z = await zipjs();
+      const reader = new z.ZipReader(new z.Uint8ArrayReader(current.bytes), { password });
+      try {
+        const out = {};
+        for (const entry of await reader.getEntries()) {
+          if (entry.directory || !wanted.has(entry.filename)) continue;
+          try { out[entry.filename] = await entry.getData(new z.Uint8ArrayWriter(), { password }); }
+          catch (e) { throw new Error(zipErrorText(e)); }
+        }
+        return out;
+      } finally {
+        await reader.close().catch(() => {});
+      }
     }
 
     async function showPreview(en, tr) {
@@ -352,7 +413,6 @@
       tr.classList.add("is-active");
       preview.textContent = "";
       preview.classList.remove("is-hidden");
-      if (en.encrypted) { preview.appendChild(cell("p", "This entry is encrypted.", "hint")); return; }
       if (en.size > 50 * 1024 * 1024) { preview.appendChild(cell("p", "Too large to preview. Download it instead.", "hint")); return; }
       try {
         const out = await extract([en.name]);
@@ -388,12 +448,12 @@
     }
 
     $("unzip-filter").addEventListener("input", render);
-    $("unzip-all").addEventListener("click", () => { visible().forEach((en) => { if (!en.encrypted) en.checked = true; }); render(); });
+    $("unzip-all").addEventListener("click", () => { visible().forEach((en) => { en.checked = true; }); render(); });
     $("unzip-none").addEventListener("click", () => { visible().forEach((en) => { en.checked = false; }); render(); });
 
     runBtn.addEventListener("click", async () => {
       if (!current) return;
-      const chosen = current.entries.filter((en) => en.checked && !en.encrypted);
+      const chosen = current.entries.filter((en) => en.checked);
       if (!chosen.length) return;
       runBtn.disabled = true;
       try {
@@ -498,12 +558,13 @@
     const SUBTLE_MAX = 512 * 1024 * 1024;
     const CHUNK = 4 * 1024 * 1024;
     let rows = []; // { el, hex }
+    let textRows = []; // rows of the live text hash card
     let runId = 0;
 
     function highlight() {
       const want = C.normalizeHash(expected.value);
       let matches = 0;
-      rows.forEach(({ el, hex }) => {
+      rows.concat(textRows).forEach(({ el, hex }) => {
         const tag = el.querySelector(".tag");
         el.classList.remove("is-match", "is-miss");
         tag.textContent = "";
@@ -511,13 +572,13 @@
         if (C.hashesMatch(want, hex)) { el.classList.add("is-match"); tag.textContent = "MATCH"; matches += 1; }
         else if (want.length === hex.length) { el.classList.add("is-miss"); tag.textContent = "differs"; }
       });
-      if (want && rows.length) {
+      if (want && (rows.length || textRows.length)) {
         T.setStatus(status, matches ? `Expected hash matches ${matches} result${matches === 1 ? "" : "s"}.` : "Expected hash does not match any result.", matches ? "ok" : "error");
       }
     }
     expected.addEventListener("input", highlight);
 
-    function addRow(card, algo) {
+    function addRow(card, algo, target = rows) {
       const row = document.createElement("div");
       row.className = "hash-row";
       const code = document.createElement("code");
@@ -533,7 +594,7 @@
       row.appendChild(tag);
       card.appendChild(row);
       const entry = { el: row, hex: "" };
-      rows.push(entry);
+      target.push(entry);
       return {
         set(hex) {
           entry.hex = hex;
@@ -604,6 +665,42 @@
         }
       },
     });
-    $("hash-clear").addEventListener("click", () => { runId += 1; results.textContent = ""; rows = []; expected.value = ""; T.setStatus(status, "", "idle"); });
+    $("hash-clear").addEventListener("click", () => {
+      runId += 1; results.textContent = ""; rows = []; expected.value = ""; $("hash-text").value = ""; updateText(); T.setStatus(status, "", "idle");
+    });
+
+    // Live hashes of typed or pasted text (UTF-8).
+    const textBox = $("hash-text");
+    const textOut = $("hash-text-results");
+    let textRun = 0;
+    const textSetters = {};
+    function buildTextCard() {
+      textOut.textContent = "";
+      textRows = [];
+      const card = document.createElement("div");
+      card.className = "hash-card";
+      ["MD5", "SHA-1", "SHA-256", "SHA-512"].forEach((a) => { textSetters[a] = addRow(card, a, textRows); });
+      textOut.appendChild(card);
+    }
+    async function updateText() {
+      const id = ++textRun;
+      if (!textBox.value) { textOut.textContent = ""; textRows = []; highlight(); return; }
+      if (!textRows.length) buildTextCard();
+      const bytes = new TextEncoder().encode(textBox.value);
+      const md5 = C.createMD5();
+      md5.update(bytes);
+      textSetters["MD5"].set(md5.digest());
+      if (!(window.crypto && crypto.subtle)) {
+        ["SHA-1", "SHA-256", "SHA-512"].forEach((a) => textSetters[a].fail("needs a secure (https) page"));
+        return;
+      }
+      for (const a of ["SHA-1", "SHA-256", "SHA-512"]) {
+        const hex = C.toHex(await crypto.subtle.digest(a, bytes));
+        if (id !== textRun) return;
+        textSetters[a].set(hex);
+      }
+      highlight();
+    }
+    textBox.addEventListener("input", updateText);
   })();
 })();

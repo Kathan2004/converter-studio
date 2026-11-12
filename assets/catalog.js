@@ -32,6 +32,10 @@
     { cat: "pdf", tab: "pdf-to-images", name: "PDF to images", desc: "PNG or JPEG per page", accepts: ["pdf"], short: "To images", tile: "PDF to images", icon: "image", keywords: "pdf to jpg png render" },
     { cat: "pdf", tab: "stamp", name: "Watermark and page numbers", desc: "Stamp or rotate every page", accepts: ["pdf"], short: "Watermark", tile: "Watermark", icon: "drop", keywords: "watermark page numbers rotate stamp" },
     { cat: "pdf", tab: "metadata", name: "PDF metadata", desc: "View, edit or wipe", accepts: ["pdf"], short: "Metadata", tile: "PDF info", icon: "info", keywords: "author title properties privacy" },
+    { cat: "pdf", tab: "protect", name: "Protect PDF", desc: "Add an AES-256 password", accepts: ["pdf"], short: "Protect", tile: "Protect PDF", icon: "lock", keywords: "encrypt password lock secure aes permissions" },
+    { cat: "pdf", tab: "unlock", name: "Unlock PDF", desc: "Remove a known password", accepts: ["pdf"], short: "Unlock", tile: "Unlock PDF", icon: "unlock", keywords: "decrypt remove password unlock restrictions" },
+    { cat: "pdf", tab: "sign", name: "Sign PDF", desc: "Draw, type or place a signature", accepts: ["pdf"], short: "Sign", tile: "Sign PDF", icon: "pen", keywords: "signature sign initials esign fill" },
+    { cat: "pdf", tab: "repair", name: "Repair PDF", desc: "Rebuild a damaged file", accepts: ["pdf"], short: "Repair", tile: "Repair PDF", icon: "wrench", keywords: "fix broken corrupt damaged recover" },
 
     { cat: "images", tab: "compress", name: "Compress images", desc: "Quality or target size", accepts: IMG, multi: true, short: "Compress", tile: "Compress image", icon: "image", featured: true, keywords: "reduce size optimize jpg png webp" },
     { cat: "images", tab: "convert", name: "Convert images", desc: "PNG, JPEG, WebP, AVIF, ICO", accepts: IMG, multi: true, short: "Convert", tile: "Convert image", icon: "convert", featured: true, keywords: "png to jpg webp avif favicon ico svg" },
@@ -40,6 +44,8 @@
     { cat: "images", tab: "ocr", name: "Image to text (OCR)", desc: "Paste a screenshot, copy its text", accepts: RASTER, multi: true, short: "Image to text", tile: "Image to text", icon: "scan", featured: true, keywords: "ocr extract text screenshot read scan copy" },
     { cat: "images", tab: "metadata", name: "Remove photo metadata", desc: "EXIF and GPS, lossless", accepts: IMG, multi: true, short: "Remove metadata", tile: "Remove EXIF", icon: "shield", keywords: "exif gps location privacy strip clean" },
     { cat: "images", tab: "base64", name: "Image to Base64", desc: "Data URLs both ways", accepts: IMG, short: "Base64", tile: "Base64", icon: "code", keywords: "base64 data url encode decode" },
+    { cat: "images", tab: "heic", name: "HEIC to JPG", desc: "iPhone photos to JPG or PNG", accepts: ["heic", "heif"], multi: true, short: "HEIC to JPG", tile: "HEIC to JPG", icon: "image", keywords: "heic heif iphone apple photo jpg png convert" },
+    { cat: "images", tab: "qr", name: "QR code", desc: "Make or read QR codes", accepts: IMG, short: "QR code", tile: "QR code", icon: "qr", keywords: "qr code generate scan read wifi url barcode" },
 
     { cat: "data", tab: "convert", name: "Convert data", desc: "JSON, CSV, Excel, YAML, XML", accepts: ["json", "csv", "tsv", "xlsx", "yaml", "yml", "xml", "md", "html", "htm"], multi: true, short: "Convert", tile: "Convert data", icon: "braces", featured: true, keywords: "json csv yaml xml tsv excel table" },
     { cat: "data", tab: "json-to-excel", name: "JSON to Excel report", desc: "Styled sheet with summary", accepts: ["json"], multi: true, short: "JSON to Excel", tile: "JSON to Excel", icon: "table", featured: true, keywords: "json xlsx spreadsheet export sentinel" },
@@ -59,10 +65,11 @@
     { cat: "documents", tab: "text-tools", name: "Text utilities", desc: "Case, Base64, URL, counts", accepts: ["txt", "md", "csv", "log"], short: "Text tools", tile: "Text tools", icon: "type", keywords: "uppercase lowercase word count base64 url encode dedupe sort" },
     { cat: "documents", page: "markdown.html", tab: "pipeline", name: "Markdown to JSON or Excel", desc: "Batch files for AI pipelines", accepts: ["md", "markdown"], multi: true, short: "Markdown to JSON", tile: "Markdown to JSON", icon: "braces", keywords: "markdown json excel ai ingestion batch" },
 
-    { cat: "files", tab: "zip", name: "Compress files to ZIP", desc: "Real deflate, folders, levels", accepts: ["*"], multi: true, short: "Zip", tile: "Zip files", icon: "zip", featured: true, keywords: "zip compress archive folder pack" },
+    { cat: "files", tab: "zip", name: "Compress files to ZIP", desc: "Real deflate, folders, levels", accepts: ["*"], multi: true, short: "Zip", tile: "Zip files", icon: "zip", featured: true, keywords: "zip compress archive folder pack password encrypted aes" },
     { cat: "files", tab: "unzip", name: "Extract ZIP", desc: "Browse and pick files", accepts: ["zip"], short: "Unzip", tile: "Unzip", icon: "unzip", keywords: "unzip extract open archive" },
     { cat: "files", tab: "gzip", name: "Gzip and gunzip", desc: "Single-file .gz", accepts: ["*"], short: "Gzip", tile: "Gzip", icon: "zip", keywords: "gz gzip gunzip compress decompress" },
-    { cat: "files", tab: "hash", name: "File hash", desc: "SHA-256, SHA-1, MD5", accepts: ["*"], multi: true, short: "Hash", tile: "File hash", icon: "hash", keywords: "checksum sha256 md5 sha1 integrity verify" },
+    { cat: "files", tab: "hash", name: "File hash", desc: "SHA-256, SHA-1, MD5", accepts: ["*"], multi: true, short: "Hash", tile: "File hash", icon: "hash", keywords: "checksum sha256 md5 sha1 integrity verify text string" },
+    { cat: "files", tab: "encrypt", name: "Encrypt file", desc: "AES-256 with a password", accepts: ["*"], multi: true, short: "Encrypt", tile: "Encrypt file", icon: "key", keywords: "encrypt decrypt password aes secure enc protect" },
   ];
 
   const byCat = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));

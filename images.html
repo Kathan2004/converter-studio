@@ -16,6 +16,18 @@
     .preview canvas { max-width: 100%; height: auto; display: block; }
     .preview img { max-width: 100%; height: auto; display: block; }
     .out-box { min-height: 120px; }
+    .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); justify-self: start; }
+    .seg button { font: inherit; font-size: 14px; font-weight: 500; border: 0; background: transparent; color: var(--ink-2); padding: 6px 18px; border-radius: 999px; cursor: pointer; }
+    .seg button.is-on { background: var(--ink); color: var(--bg); font-weight: 600; }
+    .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .qr-preview { display: grid; place-items: center; min-height: 160px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); }
+    .qr-preview img { max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; }
+    .qr-source { max-width: 160px; max-height: 160px; border-radius: 8px; border: 1px solid var(--line); }
+    .qr-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    @media (max-width: 700px) { .qr-layout { grid-template-columns: minmax(0, 1fr); } }
+    #qr-text-out { min-height: 90px; }
+    #qr-open { color: var(--accent); font-weight: 600; font-size: 14px; padding: 7px 14px; border-radius: 999px; background: var(--accent-soft); text-decoration: none; }
+    #qr-open:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -42,6 +54,8 @@
       <button data-tab="ocr">Image to text</button>
       <button data-tab="metadata">Strip metadata</button>
       <button data-tab="base64">Image to Base64</button>
+      <button data-tab="heic">HEIC to JPG</button>
+      <button data-tab="qr">QR code</button>
     </div>
 
     <section class="panel" data-panel="compress">
@@ -225,12 +239,76 @@
       <p class="status" id="b-dstatus" role="status" aria-live="polite"></p>
       <div class="preview" id="b-preview"><p class="hint">Decoded image appears here.</p></div>
     </section>
+
+    <section class="panel is-hidden" data-panel="heic">
+      <div class="drop-zone" id="heic-drop"><p class="drop-title">Drop HEIC photos here</p></div>
+      <div class="controls">
+        <div class="field"><label for="heic-format">Convert to</label><select id="heic-format"><option value="image/jpeg" selected>JPG</option><option value="image/png">PNG</option></select></div>
+        <div class="field" id="heic-quality-field"><label for="heic-quality">Quality: <output id="heic-quality-out">0.92</output></label><input id="heic-quality" type="range" min="0.05" max="1" step="0.01" value="0.92" /></div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="primary" id="heic-run" disabled>Convert</button>
+        <button type="button" class="ghost" id="heic-zip" disabled>Download all (.zip)</button>
+        <button type="button" class="ghost" id="heic-clear" disabled>Clear list</button>
+      </div>
+      <p class="status" id="heic-status" role="status" aria-live="polite"></p>
+      <ul class="file-list" id="heic-list"></ul>
+    </section>
+
+    <section class="panel is-hidden" data-panel="qr">
+      <div class="seg" role="radiogroup" aria-label="QR mode">
+        <button type="button" role="radio" aria-checked="true" class="is-on" data-qr-mode="make">Make</button>
+        <button type="button" role="radio" aria-checked="false" data-qr-mode="read" tabindex="-1">Read</button>
+      </div>
+      <div id="qr-make">
+        <div class="qr-layout">
+          <div class="controls">
+            <div class="field"><label for="qr-kind">Content</label><select id="qr-kind"><option value="text" selected>Text / URL</option><option value="wifi">Wi-Fi</option><option value="email">Email</option></select></div>
+            <div class="field" data-qr-kind="text" style="flex-basis:100%"><label for="qr-text">Text or URL</label><textarea id="qr-text" data-qr-live spellcheck="false" style="min-height:90px"></textarea></div>
+            <div class="field is-hidden" data-qr-kind="wifi"><label for="qr-wifi-ssid">Network name (SSID)</label><input type="text" id="qr-wifi-ssid" data-qr-live autocomplete="off" spellcheck="false" /></div>
+            <div class="field is-hidden" data-qr-kind="wifi" id="qr-wifi-pass-field"><label for="qr-wifi-pass">Password</label><input type="text" id="qr-wifi-pass" data-qr-live autocomplete="off" spellcheck="false" /></div>
+            <div class="field is-hidden" data-qr-kind="wifi"><label for="qr-wifi-sec">Security</label><select id="qr-wifi-sec"><option value="WPA" selected>WPA/WPA2/WPA3</option><option value="WEP">WEP</option><option value="nopass">None</option></select></div>
+            <label class="check is-hidden" data-qr-kind="wifi"><input type="checkbox" id="qr-wifi-hidden" data-qr-live /> Hidden network</label>
+            <div class="field is-hidden" data-qr-kind="email"><label for="qr-mail-to">To</label><input type="text" id="qr-mail-to" data-qr-live inputmode="email" autocomplete="off" spellcheck="false" /></div>
+            <div class="field is-hidden" data-qr-kind="email"><label for="qr-mail-subject">Subject</label><input type="text" id="qr-mail-subject" data-qr-live autocomplete="off" /></div>
+            <div class="field is-hidden" data-qr-kind="email" style="flex-basis:100%"><label for="qr-mail-body">Message</label><textarea id="qr-mail-body" data-qr-live style="min-height:70px"></textarea></div>
+            <div class="field"><label for="qr-ecc">Error correction</label><select id="qr-ecc" data-qr-live><option value="L">L - 7%</option><option value="M" selected>M - 15%</option><option value="Q">Q - 25%</option><option value="H">H - 30%</option></select></div>
+            <div class="field"><label for="qr-size">Size (px)</label><input type="number" id="qr-size" data-qr-live min="64" max="2048" step="16" value="320" /></div>
+            <div class="field"><label for="qr-fg">Foreground</label><input type="color" id="qr-fg" data-qr-live value="#000000" /></div>
+            <div class="field"><label for="qr-bg">Background</label><input type="color" id="qr-bg" data-qr-live value="#ffffff" /></div>
+          </div>
+          <div>
+            <div class="qr-preview" id="qr-preview" aria-live="polite"></div>
+            <p class="opt-note" id="qr-meta"></p>
+            <div class="btn-row">
+              <button type="button" class="primary" id="qr-png" disabled>Download PNG</button>
+              <button type="button" class="ghost" id="qr-svg" disabled>Download SVG</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="qr-read" class="is-hidden">
+        <div class="drop-zone" id="qr-drop"><p class="drop-title">Drop or paste a QR image</p></div>
+        <img class="qr-source is-hidden" id="qr-source" alt="Selected image" />
+        <div class="is-hidden" id="qr-result">
+          <div class="field"><label for="qr-text-out">Decoded text</label><textarea id="qr-text-out" class="out-box" readonly spellcheck="false"></textarea></div>
+          <div class="btn-row">
+            <button type="button" class="primary" id="qr-copy">Copy</button>
+            <a class="is-hidden" id="qr-open" target="_blank" rel="noopener noreferrer">Open link</a>
+          </div>
+        </div>
+      </div>
+      <p class="status" id="qr-status" role="status" aria-live="polite"></p>
+    </section>
   </main>
   <footer class="site-footer">Files are processed on your device and never uploaded. Made by Kathan Somani.</footer>
   <script src="assets/catalog.js"></script>
   <script src="assets/shared.js"></script>
   <script src="js/images-core.js"></script>
   <script src="js/images.js"></script>
+  <script src="js/qr-core.js"></script>
+  <script src="js/heic.js"></script>
+  <script src="js/qr.js"></script>
   <script src="js/ocr-core.js"></script>
   <script src="js/ocr.js"></script>
 </body>
