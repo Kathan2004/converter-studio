@@ -16,6 +16,7 @@
   let pageNo = 1;
   let pageInfo = null;       // { view, rotate, width, height } for the displayed page, in points
   let renderToken = 0;
+  let renderChain = Promise.resolve();
   let mode = "draw";
   let pad = null;
   let selected = -1;
@@ -141,7 +142,7 @@
     return Math.max(160, Math.min($("sign-stage-wrap").clientWidth || 600, 900));
   }
 
-  async function renderPage() {
+  async function renderPageNow() {
     if (!doc) return;
     const token = ++renderToken;
     const page = await doc.getPage(pageNo);
@@ -165,6 +166,12 @@
     pageInfo = { view, rotate };
     $("sign-stage").style.width = canvas.style.width;
     drawOverlays();
+  }
+
+  function renderPage() {
+    const run = renderChain.then(() => renderPageNow());
+    renderChain = run.catch(() => {});
+    return run;
   }
 
   function drawOverlays() {
