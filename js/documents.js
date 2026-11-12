@@ -26,12 +26,15 @@
     return err && err.message ? err.message : String(err);
   }
 
-  // Raw input is parsed in a detached document (no browsing context, no CSP), so inline handlers such as
-  // <img onerror> are never compiled or reported by the page; DOMPurify then cleans that tree in place.
+  // Raw input is parsed in a detached document, then cleaned by DOMPurify in place.
+  // We strip inline event handlers first so browser parser/CSP checks never compile them.
   const inertDoc = document.implementation.createHTMLDocument("");
+  function stripInlineHandlers(html) {
+    return String(html).replace(/\son[a-z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  }
   function purify(html, cfg) {
     const holder = inertDoc.createElement("div");
-    holder.innerHTML = String(html);
+    holder.innerHTML = stripInlineHandlers(html);
     DOMPurify.sanitize(holder, { ...cfg, IN_PLACE: true });
     return holder.innerHTML;
   }
