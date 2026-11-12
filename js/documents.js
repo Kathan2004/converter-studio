@@ -26,8 +26,18 @@
     return err && err.message ? err.message : String(err);
   }
 
+  // Raw input is parsed in a detached document (no browsing context, no CSP), so inline handlers such as
+  // <img onerror> are never compiled or reported by the page; DOMPurify then cleans that tree in place.
+  const inertDoc = document.implementation.createHTMLDocument("");
+  function purify(html, cfg) {
+    const holder = inertDoc.createElement("div");
+    holder.innerHTML = String(html);
+    DOMPurify.sanitize(holder, { ...cfg, IN_PLACE: true });
+    return holder.innerHTML;
+  }
+
   function sanitize(html) {
-    return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    return purify(html, { USE_PROFILES: { html: true } });
   }
 
   function mdToSafeHtml(md) {
@@ -755,7 +765,7 @@ h1, h2, h3, h4, tr, pre, blockquote, img { break-inside: avoid; }`;
 
   /** Sanitize untrusted HTML for the PDF stage: no scripts, handlers, styles or remote resources. */
   function htmlForPdf(html) {
-    const clean = DOMPurify.sanitize(String(html), {
+    const clean = purify(html, {
       USE_PROFILES: { html: true },
       FORBID_TAGS: ["style", "link", "meta", "base"],
       FORBID_ATTR: ["srcset"],
