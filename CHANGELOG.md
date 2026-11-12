@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.4.1] - 2026-11-13
+
+### Fixed
+
+- HTML, Markdown and Word input is now parsed in a detached document before sanitising, so inline handlers in the input (for example `<img onerror>`) never reach the page and no Content Security Policy violation is logged. Sanitised output is unchanged. This fixes the failing CI end-to-end tests
+
+### Changed
+
+- Licensed under the Apache License 2.0 with a NOTICE file; the live site moved to https://converterstudio.netlify.app/
+
 ## [2.4.0] - 2026-11-12
 
 ### Added
