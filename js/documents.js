@@ -224,32 +224,58 @@
   }
 
   /** The shared PDF pipeline: sanitized HTML -> selectable-text PDF (html2canvas + jsPDF). */
+  /**
+   * Render sanitized HTML to a PDF: draw the content with html2canvas, then cut it into pages
+   * at block boundaries (paragraphs, list items, table rows, headings) so no line is split.
+   * The render stage sits on-screen behind the page (an off-screen stage renders blank).
+   */
   async function renderHtmlPdf(safeHtml, name, o) {
     await loadScript("vendor/html2canvas.min.js");
     await loadScript("vendor/jspdf.umd.min.js");
     const contentMm = o.pageW - o.margin * 2;
     const contentPx = Math.round((contentMm * 96) / 25.4);
+    const host = document.createElement("div");
+    host.setAttribute("aria-hidden", "true");
+    host.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;z-index:-1;pointer-events:none;";
     const stage = document.createElement("div");
     stage.className = "md-render pdf-stage";
-    stage.style.width = `${contentPx}px`;
-    stage.style.fontSize = `${o.fontPx}px`;
+    stage.style.cssText = `position:absolute;left:0;top:0;width:${contentPx}px;font-size:${o.fontPx}px;max-height:none;overflow:visible;background:#fff;`;
     stage.innerHTML = safeHtml;
-    document.body.appendChild(stage);
+    host.appendChild(stage);
+    document.body.appendChild(host);
     try {
-      const doc = new jspdf.jsPDF({ unit: "mm", format: o.size, orientation: o.landscape ? "landscape" : "portrait", compress: true });
-      await new Promise((resolve, reject) => {
-        const job = doc.html(stage, {
-          callback: () => resolve(),
-          margin: [o.margin, o.margin, o.margin, o.margin],
-          autoPaging: "text",
-          x: 0,
-          y: 0,
-          width: contentMm,
-          windowWidth: contentPx,
-          html2canvas: { scale: 2, backgroundColor: "#ffffff", logging: false, useCORS: false, allowTaint: false },
-        });
-        if (job && typeof job.catch === "function") job.catch(reject);
+      await Promise.all(Array.from(stage.querySelectorAll("img")).map((img) => (img.complete ? null : new Promise((r) => { img.onload = img.onerror = r; }))));
+      const scale = 2;
+      const canvas = await html2canvas(stage, {
+        scale, backgroundColor: "#ffffff", logging: false, useCORS: false, allowTaint: false,
+        width: contentPx, windowWidth: contentPx, scrollX: 0, scrollY: 0,
       });
+      // Candidate break points: bottoms of blocks, in CSS px from the top of the stage.
+      const top = stage.getBoundingClientRect().top;
+      const breaks = Array.from(stage.querySelectorAll("p, li, tr, h1, h2, h3, h4, h5, h6, pre, blockquote, img, hr, table, ul, ol, dl, figure"))
+        .map((el) => el.getBoundingClientRect().bottom - top)
+        .filter((y) => y > 0)
+        .sort((a, b) => a - b);
+      const totalPx = canvas.height / scale;
+      const pagePx = ((o.pageH - o.margin * 2) * 96) / 25.4;
+      const slices = Core.pageSlices(totalPx, pagePx, breaks);
+
+      const doc = new jspdf.jsPDF({ unit: "mm", format: o.size, orientation: o.landscape ? "landscape" : "portrait", compress: true });
+      const pxToMm = contentMm / contentPx;
+      slices.forEach(([y0, y1], i) => {
+        if (i > 0) doc.addPage();
+        const h = Math.max(1, Math.round((y1 - y0) * scale));
+        const part = document.createElement("canvas");
+        part.width = canvas.width;
+        part.height = h;
+        const g = part.getContext("2d");
+        g.fillStyle = "#ffffff";
+        g.fillRect(0, 0, part.width, h);
+        g.drawImage(canvas, 0, Math.round(y0 * scale), canvas.width, h, 0, 0, canvas.width, h);
+        doc.addImage(part.toDataURL("image/jpeg", 0.92), "JPEG", o.margin, o.margin, contentMm, (y1 - y0) * pxToMm, undefined, "FAST");
+        part.width = part.height = 0;
+      });
+      canvas.width = canvas.height = 0;
       if (o.numbers) {
         const total = doc.getNumberOfPages();
         doc.setFontSize(9);
@@ -261,7 +287,7 @@
       }
       return { name: `${T.safeFilename(name)}.pdf`, blob: doc.output("blob") };
     } finally {
-      stage.remove();
+      host.remove();
     }
   }
 

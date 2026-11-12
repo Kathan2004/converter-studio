@@ -226,3 +226,10 @@ test("numberingConfig defines nine levels", () => {
   assert.equal(cfg.config[0].reference, "md-numbered");
   assert.equal(cfg.config[0].levels.length, 9);
 });
+
+test("pageSlices cuts at block boundaries and hard-cuts only oversized blocks", () => {
+  const { pageSlices } = require("../js/documents-core.js");
+  assert.deepStrictEqual(pageSlices(500, 1000, []), [[0, 500]]);
+  assert.deepStrictEqual(pageSlices(2500, 1000, [950, 1200, 1990]), [[0, 950], [950, 1200], [1200, 1990], [1990, 2500]]);
+  assert.deepStrictEqual(pageSlices(2500, 1000, []), [[0, 1000], [1000, 2000], [2000, 2500]]);
+});
