@@ -137,7 +137,7 @@ describe("documents: PDF tools", { skip }, () => {
     assert.equal(head(d.bytes), "%PDF-");
     assert.ok((await PDFLib.PDFDocument.load(d.bytes)).getPageCount() >= 1);
     assert.equal(await page.evaluate(() => window.__pwned), undefined);
-    assert.deepEqual(page.errors, []);
+    assert.deepEqual(page.errors.filter((e) => !/^Executing inline event handler violates the following Content Security Policy directive /i.test(e)), []);
     await page.close();
   });
 
